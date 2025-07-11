@@ -78,7 +78,7 @@ if st.button("Submit Punch"):
     headers = {"Authorization": f"Bearer {creds.get_access_token().access_token}"}
     metadata = {
         "name": f"{manager}_{today_str}_{time_str}.jpg",
-        "parents": ["1geeQPitCovvG5_2MlNOdvTOfupHu2G78"]
+        "parents": ["0AA4fa_MASjkaUk9PVA"]
     }
     files = {
         'data': ('metadata', json.dumps(metadata), 'application/json'),
