@@ -5,7 +5,6 @@ import geocoder
 import json
 import requests
 from oauth2client.service_account import ServiceAccountCredentials
-from PIL import Image
 
 # -------------------- CONFIG --------------------
 st.set_page_config(page_title="HYBB Attendance System", layout="centered")
@@ -32,10 +31,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# -------------------- LOGO --------------------
-logo = Image.open("hybb_logo.jpeg")
-st.image(logo, width=120)
-
 st.markdown('<div class="title">HYBB Attendance System</div>', unsafe_allow_html=True)
 st.markdown('<div class="company">Hygiene Bigbite Pvt Ltd</div>', unsafe_allow_html=True)
 
@@ -47,7 +42,7 @@ client = gspread.authorize(creds)
 sheet = client.open("Manager Visit Tracker").sheet1
 
 # -------------------- PUNCH FORM --------------------
-manager_list = ["Bablu C", "Umesh M", "John Joseph", "Sonu Kumar", "Joy Matabar", "Naveen Kumar M", "Samsudeen", "Rakesh Babu", "Ayub Sait", "Tauseef"]
+manager_list = ["Ayub Sait", "Rakesh Babu", "John Joseph", "Naveen Kumar M", "Sangeetha RM", "Joy Matabar", "Sonu Kumar", "Samsudeen", "Tauseef", "Bablu C"]
 kitchens = [
     "ANR01.BLR22", "BSK01.BLR19", "WFD01.BLR06", "MAR01.BLR05", "BTM01.BLR03",
     "IND01.BLR01", "HSR01.BLR02", "VDP01.CHN02", "MGP01.CHN01", "CMP01.CHN10",
@@ -90,7 +85,7 @@ if st.button("Submit Punch"):
             headers = {"Authorization": f"Bearer {creds.get_access_token().access_token}"}
             metadata = {
                 "name": f"{manager}_{today_str}_{time_str}.jpg",
-                "parents": ["https://drive.google.com/drive/folders/1geeQPitCovvG5_2MlNOdvTOfupHu2G78"]  # TODO: Replace with actual Drive folder ID
+                "parents": ["YOUR_FOLDER_ID"]  # TODO: Replace with actual Drive folder ID
             }
             files = {
                 'data': ('metadata', json.dumps(metadata), 'application/json'),
