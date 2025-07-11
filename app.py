@@ -33,7 +33,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------- LOGO --------------------
-logo = Image.open("WhatsApp Image 2024-10-01 at 11.26.54 AM (1).jpeg")
+logo = Image.open("hybb_logo.jpeg")
 st.image(logo, width=120)
 
 st.markdown('<div class="title">HYBB Attendance System</div>', unsafe_allow_html=True)
