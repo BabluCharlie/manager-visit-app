@@ -47,7 +47,7 @@ client = gspread.authorize(creds)
 sheet = client.open("Manager Visit Tracker").sheet1
 
 # -------------------- PUNCH FORM --------------------
-manager_list = ["Ravi", "Sonia", "Ali", "Preeti", "Vikram", "Aarti", "Rohan", "Neha", "Karan", "Divya"]
+manager_list = ["Bablu C", "Umesh M", "John Joseph", "Sonu Kumar", "Joy Matabar", "Naveen Kumar M", "Samsudeen", "Rakesh Babu", "Ayub Sait", "Tauseef"]
 kitchens = [
     "ANR01.BLR22", "BSK01.BLR19", "WFD01.BLR06", "MAR01.BLR05", "BTM01.BLR03",
     "IND01.BLR01", "HSR01.BLR02", "VDP01.CHN02", "MGP01.CHN01", "CMP01.CHN10",
