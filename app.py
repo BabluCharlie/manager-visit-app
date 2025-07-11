@@ -27,7 +27,12 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(st.secrets["
 client = gspread.authorize(creds)
 worksheet = client.open("Manager Visit Tracker").sheet1
 
-# Ensure header row exists
+# -------------------- CONSTANTS --------------------
+DRIVE_FOLDER_ID = "1i5SnIkpMPqtU1kSVVdYY4jQK1lwHbR9G"   # ← your folder INSIDE the shared‑drive
+# If this folder lives in a Shared Drive supply that shared‑drive ID too (else leave as "")
+SHARED_DRIVE_ID = ""   # e.g. "0AA4fa_MASjkaUk9PVA"  – leave blank if not needed
+
+# -------------------- HEADER CHECK --------------------
 expected_headers = ["Date", "Time", "Manager Name", "Kitchen Name", "Action", "Latitude", "Longitude", "Selfie URL", "Location Link"]
 current_headers = worksheet.row_values(1)
 if current_headers != expected_headers:
@@ -47,14 +52,15 @@ action = st.radio("Action", ["Punch In", "Punch Out"])
 photo = st.camera_input("Take a Selfie (Required)")
 
 if st.button("Submit Punch"):
+    # Validation ------------------
     if not manager or not kitchen:
         st.warning("⚠️ Please select both Manager and Kitchen before submitting.")
         st.stop()
-
     if not photo:
         st.error("📸 Please take a selfie before submitting.")
         st.stop()
 
+    # Datetime & location ----------
     now = datetime.datetime.now()
     today_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H:%M:%S")
@@ -62,24 +68,21 @@ if st.button("Submit Punch"):
     lat, lon = g.latlng if g.latlng else ("N/A", "N/A")
     location_url = f"https://www.google.com/maps?q={lat},{lon}" if lat != "N/A" else "Location not available"
 
-    # Duplicate punch check
-    records = worksheet.get_all_records()
-    duplicate = any(
-        r.get("Date") == today_str and r.get("Manager Name") == manager and r.get("Kitchen Name") == kitchen and r.get("Action") == action
-        for r in records
-    )
-
-    if duplicate:
+    # Duplicate check --------------
+    if any(r.get("Date") == today_str and r.get("Manager Name") == manager and r.get("Kitchen Name") == kitchen and r.get("Action") == action for r in worksheet.get_all_records()):
         st.warning("⚠️ You've already submitted this punch today.")
         st.stop()
 
+    # Upload selfie ---------------
     selfie_url = ""
-    upload_url = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
+    upload_url = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true"
     headers = {"Authorization": f"Bearer {creds.get_access_token().access_token}"}
     metadata = {
         "name": f"{manager}_{today_str}_{time_str}.jpg",
-        "parents": ["1i5SnIkpMPqtU1kSVVdYY4jQK1lwHbR9G"]
+        "parents": [DRIVE_FOLDER_ID]
     }
+    if SHARED_DRIVE_ID:
+        metadata["driveId"] = SHARED_DRIVE_ID
     files = {
         'data': ('metadata', json.dumps(metadata), 'application/json'),
         'file': photo.getvalue()
@@ -89,11 +92,11 @@ if st.button("Submit Punch"):
         file_id = resp.json()["id"]
         selfie_url = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
     else:
-        st.error("❌ Failed to upload selfie to Google Drive.")
-        st.text(f"Status code: {resp.status_code}, Response: {resp.text}")
+        st.error("❌ Failed to upload selfie to Google Drive – please check folder ID & access.")
+        st.text(f"Status code: {resp.status_code}\nResponse: {resp.text}")
         st.stop()
 
-    # Append to sheet
+    # Append to sheet --------------
     worksheet.append_row([today_str, time_str, manager, kitchen, action, lat, lon, selfie_url, location_url])
     st.success("✅ Punch recorded successfully!")
     st.markdown(f"[📍 Location Map]({location_url})")
