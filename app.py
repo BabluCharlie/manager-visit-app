@@ -78,7 +78,7 @@ if st.button("Submit Punch"):
     headers = {"Authorization": f"Bearer {creds.get_access_token().access_token}"}
     metadata = {
         "name": f"{manager}_{today_str}_{time_str}.jpg",
-        "parents": ["1geeQPitCovvG5_2MlNOdvTOfupHu2G78"]  # ✅ Replace with actual folder ID only
+        "parents": ["1geeQPitCovvG5_2MlNOdvTOfupHu2G78"]
     }
     files = {
         'data': ('metadata', json.dumps(metadata), 'application/json'),
@@ -90,6 +90,7 @@ if st.button("Submit Punch"):
         selfie_url = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
     else:
         st.error("❌ Failed to upload selfie to Google Drive.")
+        st.text(f"Status code: {resp.status_code}, Response: {resp.text}")
         st.stop()
 
     # Append to sheet
