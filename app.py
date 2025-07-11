@@ -44,7 +44,7 @@ sheet = client.open("Manager Visit Tracker").sheet1
 # -------------------- PUNCH FORM --------------------
 manager_list = ["Ayub Sait", "Rakesh Babu", "John Joseph", "Naveen Kumar M", "Sangeetha RM", "Joy Matabar", "Sonu Kumar", "Samsudeen", "Tauseef", "Bablu C"]
 kitchens = [
-    "ANR01.BLR22", "BSK01.BLR19", "WFD01.BLR06", "MAR01.BLR05", "BTM01.BLR03",
+    "", "ANR01.BLR22", "BSK01.BLR19", "WFD01.BLR06", "MAR01.BLR05", "BTM01.BLR03",
     "IND01.BLR01", "HSR01.BLR02", "VDP01.CHN02", "MGP01.CHN01", "CMP01.CHN10",
     "KLN01.BLR09", "TKR01.BLR29", "CRN01.BLR17", "SKN01.BLR07", "HNR01.BLR16",
     "RTN01.BLR23", "YLK01.BLR15", "NBR01.BLR21", "PGD01.CHN06", "PRR01.CHN04",
@@ -53,50 +53,53 @@ kitchens = [
 ]
 
 st.subheader("Punch In / Punch Out")
-manager = st.selectbox("Select Manager", manager_list)
-kitchen = st.selectbox("Select Kitchen", kitchens)
+manager = st.selectbox("Select Manager", manager_list, index=0)
+kitchen = st.selectbox("Select Kitchen", kitchens, index=0)
 action = st.radio("Action", ["Punch In", "Punch Out"])
-photo = st.file_uploader("Upload Selfie (Optional)", type=["jpg", "jpeg", "png"])
+photo = st.camera_input("Take a Selfie (Optional)")
 
 if st.button("Submit Punch"):
-    now = datetime.datetime.now()
-    today_str = now.strftime("%Y-%m-%d")
-    time_str = now.strftime("%H:%M:%S")
-    g = geocoder.ip('me')
-    lat, lon = g.latlng if g.latlng else ("N/A", "N/A")
-
-    # Check for duplicate punch
-    records = sheet.get_all_records()
-    duplicate = any(
-        row["Date"] == today_str and
-        row["Manager Name"] == manager and
-        row["Kitchen Name"] == kitchen and
-        row["Action"] == action
-        for row in records
-    )
-
-    if duplicate:
-        st.warning("⚠️ You've already submitted this punch today.")
+    if not manager or not kitchen:
+        st.warning("⚠️ Please select both Manager and Kitchen before submitting.")
     else:
-        selfie_url = ""
-        if photo:
-            # Upload photo to Google Drive
-            upload_url = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
-            headers = {"Authorization": f"Bearer {creds.get_access_token().access_token}"}
-            metadata = {
-                "name": f"{manager}_{today_str}_{time_str}.jpg",
-                "parents": ["YOUR_FOLDER_ID"]  # TODO: Replace with actual Drive folder ID
-            }
-            files = {
-                'data': ('metadata', json.dumps(metadata), 'application/json'),
-                'file': photo.getvalue()
-            }
-            response = requests.post(upload_url, headers=headers, files=files)
-            if response.status_code == 200:
-                file_id = response.json()["id"]
-                selfie_url = f"https://drive.google.com/uc?id={file_id}"
+        now = datetime.datetime.now()
+        today_str = now.strftime("%Y-%m-%d")
+        time_str = now.strftime("%H:%M:%S")
+        g = geocoder.ip('me')
+        lat, lon = g.latlng if g.latlng else ("N/A", "N/A")
 
-        # Append data to Sheet
-        data = [today_str, time_str, manager, kitchen, action, lat, lon, selfie_url]
-        sheet.append_row(data)
-        st.success("✅ Punch recorded successfully!")
+        # Check for duplicate punch
+        records = sheet.get_all_records()
+        duplicate = any(
+            row["Date"] == today_str and
+            row["Manager Name"] == manager and
+            row["Kitchen Name"] == kitchen and
+            row["Action"] == action
+            for row in records
+        )
+
+        if duplicate:
+            st.warning("⚠️ You've already submitted this punch today.")
+        else:
+            selfie_url = ""
+            if photo:
+                # Upload photo to Google Drive
+                upload_url = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
+                headers = {"Authorization": f"Bearer {creds.get_access_token().access_token}"}
+                metadata = {
+                    "name": f"{manager}_{today_str}_{time_str}.jpg",
+                    "parents": ["YOUR_FOLDER_ID"]  # TODO: Replace with actual Drive folder ID
+                }
+                files = {
+                    'data': ('metadata', json.dumps(metadata), 'application/json'),
+                    'file': photo.getvalue()
+                }
+                response = requests.post(upload_url, headers=headers, files=files)
+                if response.status_code == 200:
+                    file_id = response.json()["id"]
+                    selfie_url = f"https://drive.google.com/uc?id={file_id}"
+
+            # Append data to Sheet
+            data = [today_str, time_str, manager, kitchen, action, lat, lon, selfie_url]
+            sheet.append_row(data)
+            st.success("✅ Punch recorded successfully!")
