@@ -137,17 +137,22 @@ with right:
         st.subheader("📆 Submit Weekly Roaster")
         with st.form("roaster_form"):
             selected_manager = st.selectbox("Manager Name", manager_list, key="re_manager")
-            week_start = st.date_input("Week Starting (Monday)", value=(datetime.date.today() - datetime.timedelta(days=datetime.date.today().weekday())), key="re_week")
+            # Next Monday from today
+            next_monday = datetime.date.today() + datetime.timedelta(days=(7 - datetime.date.today().weekday()) % 7)
+            week_start = st.date_input("Week Starting (Monday)", value=next_monday, key="re_week")
 
+            # Build 7‑day range starting Monday
             days = [week_start + datetime.timedelta(days=i) for i in range(7)]
             entries = []
+            # Pre‑compute login‑time choices 07:00‑23:30 every 30 min
+            time_choices = [(datetime.time(7,0) + datetime.timedelta(minutes=30*i)).strftime("%H:%M") for i in range(0,34)]
             for day in days:
                 st.markdown(f"**{day.strftime('%A %d-%b')}**")
-                kitchen = st.selectbox(f"Kitchen for {day.strftime('%A')}", [""] + kitchens, key=str(day))
+                kitchen = st.selectbox(f"Kitchen for {day.strftime('%A')}", [""] + kitchens, key=f"k_{day}")
+                login_time = st.selectbox(f"Login Time for {day.strftime('%A')}", ["07:00"]+time_choices, key=f"t_{day}")
                 remark = st.text_input(f"Remarks for {day.strftime('%A')}", key=f"rem_{day}")
                 if kitchen:
-                    login_time = st.time_input(f"Login Time for {day.strftime('%A')}", key=f"login_{day}")
-                    entries.append([day.strftime('%Y-%m-%d'), selected_manager, kitchen, login_time.strftime('%H:%M'), remark])
+                    entries.append([day.strftime('%Y-%m-%d'), selected_manager, kitchen, login_time, remark])
             submit_roaster = st.form_submit_button("Submit Roaster")
             if submit_roaster:
                 for row in entries:
