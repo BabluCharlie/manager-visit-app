@@ -54,7 +54,6 @@ DRIVE_FOLDER_ID = "1i5SnIkpMPqtU1kSVVdYY4jQK1lwHbR9G"
 SHARED_DRIVE_ID = ""
 manager_list = ["", "Ayub Sait", "Rakesh Babu", "John Joseph", "Naveen Kumar M", "Sangeetha RM", "Joy Matabar", "Sonu Kumar", "Samsudeen", "Tauseef", "Bablu C", "Umesh M", "Selva Kumar", "Srividya"]
 kitchens = ["ANR01.BLR22", "BSK01.BLR19", "WFD01.BLR06", "MAR01.BLR05", "BTM01.BLR03", "IND01.BLR01", "HSR01.BLR02", "VDP01.CHN02", "MGP01.CHN01", "CMP01.CHN10", "KLN01.BLR09", "TKR01.BLR29", "CRN01.BLR17", "SKN01.BLR07", "HNR01.BLR16", "RTN01.BLR23", "YLK01.BLR15", "NBR01.BLR21", "PGD01.CHN06", "PRR01.CHN04", "FZT01.BLR20", "ECT01.BLR24", "SJP01.BLR08", "KPR01.BLR41", "BSN01.BLR40", "VNR01.BLR18", "SDP01.BLR34", "TCP01.BLR27", "BOM01.BLR04", "CK-Corp","KOR01.BLR12", "SKM01.CHN03", "WFD02.BLR13", "KDG01.BLR14"]
-
 # -------------------- LAYOUT --------------------
 left, right = st.columns([2,1])
 
@@ -84,7 +83,7 @@ with left:
                                     'file':photo.getvalue()})
         selfie_url = f"https://drive.google.com/file/d/{resp.json().get('id')}/view?usp=sharing" if resp.status_code==200 else "UploadErr"
         worksheet.append_row([today_str,time_str,sel_manager,sel_kitchen,sel_action,lat,lon,selfie_url,location_url])
-        st.success("Punch recorded!"); st.experimental_rerun()
+        st.success("Punch recorded!"); st.rerun()
 
 # -------- Right Column : Dashboard Tabs --------
 with right:
@@ -105,21 +104,62 @@ with right:
             st.dataframe(show, use_container_width=True)
 
     elif tab=="Attendance":
-        if full_df.empty: st.info("No attendance yet.")
+        if full_df.empty:
+            st.info("No attendance data.")
         else:
             a_date = st.date_input("Date", value=datetime.date.today(), key="att_date")
-            view = full_df[full_df["Date"]==a_date]
-            if not roaster_df.empty:
-                roster_today = roaster_df[roaster_df["Date"]==a_date][["Manager","Kitchen"]]
-                view["key"] = view["Manager Name"]+"|"+view["Kitchen Name"]
-                roster_today["key"] = roster_today["Manager"]+"|"+roster_today["Kitchen"]
+            view = full_df[full_df["Date"] == a_date]
+            if view.empty:
+                st.info("No attendance records for the selected date.")
+            elif not roaster_df.empty:
+                roster_today = roaster_df[roaster_df["Date"] == a_date][["Manager", "Kitchen"]]
+                view["key"] = view["Manager Name"] + "|" + view["Kitchen Name"]
+                roster_today["key"] = roster_today["Manager"] + "|" + roster_today["Kitchen"]
                 view["Mismatch"] = ~view["key"].isin(roster_today["key"])
-                style = view.style.apply(lambda x:['background-color:#FFCDD2' if v else '' for v in x], subset=["Mismatch"])
+                style = view.style.apply(lambda x: ['background-color:#FFCDD2' if v else '' for v in x], subset=["Mismatch"])
                 st.dataframe(style.hide(columns=["key"]), use_container_width=True)
             else:
                 st.dataframe(view, use_container_width=True)
 
     elif tab=="Visit Summary":
+        if full_df.empty: st.info("No visits yet.")
+        else:
+            freq = st.radio("Frequency", ["Last 7 Days", "Last 30 Days", "All Time"], key="vs_freq")
+            today = datetime.date.today()
+            if freq == "Last 7 Days":
+                df_f = full_df[full_df["Date"] >= today - datetime.timedelta(days=7)]
+            elif freq == "Last 30 Days":
+                df_f = full_df[full_df["Date"] >= today - datetime.timedelta(days=30)]
+            else:
+                df_f = full_df.copy()
+            visits = df_f.groupby(["Manager Name", "Kitchen Name"]).size().reset_index(name="Visits")
+            st.dataframe(visits, use_container_width=True)
+
+    elif tab=="Roaster Entry":
+        st.subheader("📆 Submit Weekly Roaster")
+        with st.form("roaster_form"):
+            selected_manager = st.selectbox("Manager Name", manager_list, key="re_manager")
+            # Next Monday from today
+            next_monday = datetime.date.today() + datetime.timedelta(days=(7 - datetime.date.today().weekday()) % 7)
+            week_start = st.date_input("Week Starting (Monday)", value=next_monday, key="re_week")
+            days = [week_start + datetime.timedelta(days=i) for i in range(7)]
+            entries = []
+            time_choices = [
+                (datetime.datetime.combine(datetime.date.today(), datetime.time(7, 0)) + datetime.timedelta(minutes=30 * i)).time().strftime("%H:%M")
+                for i in range(34)
+            ]
+            for day in days:
+                st.markdown(f"**{day.strftime('%A %d-%b')}**")
+                kitchen = st.selectbox(f"Kitchen for {day.strftime('%A')}", ["", "Week Off", "Comp-Off", "Leave"] + kitchens, key=f"k_{day}")
+                login_time = st.selectbox(f"Login Time for {day.strftime('%A')}", time_choices, key=f"t_{day}")
+                remark = st.text_input(f"Remarks for {day.strftime('%A')}", key=f"rem_{day}")
+                if kitchen:
+                    entries.append([day.strftime('%Y-%m-%d'), selected_manager, kitchen, login_time, remark])
+            submit_roaster = st.form_submit_button("Submit Roaster")
+            if submit_roaster:
+                for row in entries:
+                    roaster_sheet.append_row(row)
+                st.success("✅ Roaster submitted successfully!"):
         if full_df.empty: st.info("No visits yet.")
         else:
             freq = st.radio("Frequency", ["Last 7 Days","Last 30 Days","All Time"], key="vs_freq")
@@ -146,9 +186,8 @@ with right:
             entries = []
             # Pre‑compute login‑time choices 07:00‑23:30 every 30 min
             time_choices = [
-                (datetime.datetime.combine(datetime.date.today(), datetime.time(7, 0)) + datetime.timedelta(
-                    minutes=30 * i)).time().strftime("%H:%M")
-                for i in range(34)
+                (datetime.datetime.combine(datetime.date.today(), datetime.time(7, 0)) + datetime.timedelta(minutes=30 * i)).time().strftime("%H:%M")
+                for i in range(34)  # 07:00 to 23:30 every 30 min
             ]
             for day in days:
                 st.markdown(f"**{day.strftime('%A %d-%b')}**")
