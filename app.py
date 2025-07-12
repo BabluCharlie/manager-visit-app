@@ -220,9 +220,22 @@ with right_col:
             st.dataframe(temp, use_container_width=True)
 
     # ---------------- TAB: Attendance ------------------
+    # ---------------- TAB: Attendance ------------------
     elif tab == "Attendance":
         if full_df.empty:
             st.info("No attendance data.")
         else:
             sel_date = st.date_input("Date", value=datetime.date.today())
-            view
+            view_df = full_df[full_df["Date"] == sel_date]
+
+            if view_df.empty:
+                st.info("No attendance records for this date.")
+            else:
+                if not roaster_df.empty:
+                    roster_today = roaster_df[roaster_df["Date"] == sel_date][["Manager", "Kitchen"]]
+                    view_df["key"] = view_df["Manager Name"] + "|" + view_df["Kitchen Name"]
+                    roster_today["key"] = roster_today["Manager"] + "|" + roster_today["Kitchen"]
+                    view_df["Mismatch"] = ~view_df["key"].isin(roster_today["key"])
+                    view_df = view_df.drop(columns=["key"])
+
+                st.dataframe(view_df, use_container_width=True)
