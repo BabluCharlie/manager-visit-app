@@ -59,7 +59,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="title">HYBB Attendance System</div>', unsafe_allow_html=True)
-st.image("/mnt/data/hybb_logo.jpeg", width=80)
 st.markdown('<div class="company">Hygiene Bigbite Pvt Ltd</div>', unsafe_allow_html=True)
 st.markdown('<hr style="border:1px solid white; margin-top:0px">', unsafe_allow_html=True)
 st.markdown('<div style="text-align:center; color:white; font-size:14px; margin-top:40px;">© 2025 Hygiene Bigbite Pvt Ltd | All rights reserved</div>', unsafe_allow_html=True)
