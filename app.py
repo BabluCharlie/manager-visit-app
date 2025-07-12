@@ -96,6 +96,15 @@ except gspread.exceptions.WorksheetNotFound:
     roaster_sheet = client.open("Manager Visit Tracker").add_worksheet("Roaster", rows=1000, cols=5)
     roaster_sheet.insert_row(["Date", "Manager", "Kitchen", "Login Time", "Remarks"], 1)
 
+# Load roaster dataframe safely
+try:
+    roaster_df = pd.DataFrame(roaster_sheet.get_all_records())
+    if not roaster_df.empty and "Date" in roaster_df.columns:
+        roaster_df["Date"] = pd.to_datetime(roaster_df["Date"], errors="coerce").dt.date
+except Exception as e:
+    roaster_df = pd.DataFrame()
+    st.warning("⚠️ Could not load roaster data.")
+
 # (Additional logic for layout, punch form, and dashboard goes here...)
 # Be sure to use punch_success() and roaster_success() in the form submission logic.
 # -------------------- CONSTANTS --------------------
