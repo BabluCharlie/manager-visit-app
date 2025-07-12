@@ -29,6 +29,13 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(st.secrets["
 client = gspread.authorize(creds)
 worksheet = client.open("Manager Visit Tracker").sheet1
 
+# Load optional Roaster sheet if available
+try:
+    roaster_sheet = client.open("Manager Visit Tracker").worksheet("Roaster")
+    roaster_df = pd.DataFrame(roaster_sheet.get_all_records())
+except:
+    roaster_df = pd.DataFrame()
+
 # -------------------- CONSTANTS --------------------
 DRIVE_FOLDER_ID = "1i5SnIkpMPqtU1kSVVdYY4jQK1lwHbR9G"
 SHARED_DRIVE_ID = ""
@@ -41,27 +48,6 @@ if current_headers != expected_headers:
         worksheet.insert_row(expected_headers, 1)
     else:
         worksheet.update("A1", [expected_headers])
-
-# -------------------- DASHBOARD --------------------
-st.subheader("📊 Dashboard Summary")
-records = worksheet.get_all_records()
-df = pd.DataFrame(records)
-
-if not df.empty:
-    df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
-    df = df.dropna(subset=["Date"])
-    df["Date"] = df["Date"].dt.date
-
-    min_date = df["Date"].min()
-    max_date = df["Date"].max()
-    selected_date = st.date_input("Select a date", value=max_date, min_value=min_date, max_value=max_date)
-
-    filtered_df = df[df["Date"] == selected_date]
-    st.dataframe(filtered_df)
-
-    punch_summary = filtered_df.groupby(["Manager Name", "Kitchen Name", "Action"]).size().reset_index(name='Count')
-    st.markdown("### Summary")
-    st.dataframe(punch_summary)
 
 # -------------------- PUNCH FORM --------------------
 st.subheader("Punch In / Punch Out")
@@ -122,3 +108,30 @@ if submitted:
     st.markdown(f"[📍 Location Map]({location_url})")
     st.markdown(f"[📸 View Selfie]({selfie_url})")
     st.experimental_rerun()
+
+# -------------------- DASHBOARD --------------------
+st.subheader("📅 Manager Roaster")
+if not roaster_df.empty:
+    st.dataframe(roaster_df)
+else:
+    st.info("Roaster not available or failed to load.")
+
+st.subheader("📊 Dashboard Summary")
+records = worksheet.get_all_records()
+df = pd.DataFrame(records)
+
+if not df.empty:
+    df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
+    df = df.dropna(subset=["Date"])
+    df["Date"] = df["Date"].dt.date
+
+    min_date = df["Date"].min()
+    max_date = df["Date"].max()
+    selected_date = st.date_input("Select a date", value=max_date, min_value=min_date, max_value=max_date)
+
+    filtered_df = df[df["Date"] == selected_date]
+    st.dataframe(filtered_df)
+
+    punch_summary = filtered_df.groupby(["Manager Name", "Kitchen Name", "Action"]).size().reset_index(name='Count')
+    st.markdown("### Summary")
+    st.dataframe(punch_summary)
