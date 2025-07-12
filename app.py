@@ -44,7 +44,7 @@ try:
     roaster_sheet = client.open("Manager Visit Tracker").worksheet("Roaster")
 except gspread.exceptions.WorksheetNotFound:
     roaster_sheet = client.open("Manager Visit Tracker").add_worksheet("Roaster", rows=1000, cols=5)
-    roaster_sheet.insert_row(["Date", "Manager", "Kitchen", "Remarks"], 1)
+    roaster_sheet.insert_row(["Date", "Manager", "Kitchen", "Login Time", "Remarks"], 1)
 roaster_df = pd.DataFrame(roaster_sheet.get_all_records())
 if not roaster_df.empty and "Date" in roaster_df.columns:
     roaster_df["Date"] = pd.to_datetime(roaster_df["Date"], errors='coerce').dt.date
@@ -137,7 +137,7 @@ with right:
         st.subheader("📆 Submit Weekly Roaster")
         with st.form("roaster_form"):
             selected_manager = st.selectbox("Manager Name", manager_list, key="re_manager")
-            week_start = st.date_input("Week Starting (Monday)", value=datetime.date.today(), key="re_week")
+            week_start = st.date_input("Week Starting (Monday)", value=(datetime.date.today() - datetime.timedelta(days=datetime.date.today().weekday())), key="re_week"), key="re_week")
             days = [week_start + datetime.timedelta(days=i) for i in range(7)]
             entries = []
             for day in days:
@@ -145,7 +145,8 @@ with right:
                 kitchen = st.selectbox(f"Kitchen for {day.strftime('%A')}", [""] + kitchens, key=str(day))
                 remark = st.text_input(f"Remarks for {day.strftime('%A')}", key=f"rem_{day}")
                 if kitchen:
-                    entries.append([day.strftime('%Y-%m-%d'), selected_manager, kitchen, remark])
+                    login_time = st.time_input(f"Login Time for {day.strftime('%A')}", key=f"login_{day}")
+                    entries.append([day.strftime('%Y-%m-%d'), selected_manager, kitchen, login_time.strftime('%H:%M'), remark])
             submit_roaster = st.form_submit_button("Submit Roaster")
             if submit_roaster:
                 for row in entries:
