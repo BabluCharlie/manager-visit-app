@@ -5,6 +5,7 @@ import geocoder
 import json
 import requests
 import pandas as pd
+import pytz
 from oauth2client.service_account import ServiceAccountCredentials
 
 # -------------------- CONFIG --------------------
@@ -42,16 +43,23 @@ if current_headers != expected_headers:
         worksheet.update("A1", [expected_headers])
 
 # -------------------- DASHBOARD --------------------
-st.subheader("📊 Daily Dashboard Summary")
+st.subheader("📊 Dashboard Summary")
 records = worksheet.get_all_records()
 df = pd.DataFrame(records)
 
 if not df.empty:
-    today_str = datetime.datetime.now().strftime("%Y-%m-%d")
-    today_df = df[df["Date"] == today_str]
-    st.dataframe(today_df)
+    df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
+    df = df.dropna(subset=["Date"])
+    df["Date"] = df["Date"].dt.date
 
-    punch_summary = today_df.groupby(["Manager Name", "Kitchen Name", "Action"]).size().reset_index(name='Count')
+    min_date = df["Date"].min()
+    max_date = df["Date"].max()
+    selected_date = st.date_input("Select a date", value=max_date, min_value=min_date, max_value=max_date)
+
+    filtered_df = df[df["Date"] == selected_date]
+    st.dataframe(filtered_df)
+
+    punch_summary = filtered_df.groupby(["Manager Name", "Kitchen Name", "Action"]).size().reset_index(name='Count')
     st.markdown("### Summary")
     st.dataframe(punch_summary)
 
@@ -75,10 +83,11 @@ if submitted:
         st.error("📸 Please take a selfie before submitting.")
         st.stop()
 
-    now = datetime.datetime.now()
-    today_str = now.strftime("%Y-%m-%d")
-    time_str = now.strftime("%H:%M:%S")
-    g = geocoder.ip('me')
+    indian_time = datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
+    today_str = indian_time.strftime("%Y-%m-%d")
+    time_str = indian_time.strftime("%H:%M:%S")
+
+    g = geocoder.ipinfo('me')
     lat, lon = g.latlng if g.latlng else ("N/A", "N/A")
     location_url = f"https://www.google.com/maps?q={lat},{lon}" if lat != "N/A" else "Location not available"
 
