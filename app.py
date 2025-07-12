@@ -118,9 +118,9 @@ with right:
                 roster_today["key"] = roster_today["Manager"] + "|" + roster_today["Kitchen"]
                 view["Mismatch"] = ~view["key"].isin(roster_today["key"])
                 view = view.drop(columns=["key"])  # drop helper key
-st.dataframe(view, use_container_width=True)
-else:
     st.dataframe(view, use_container_width=True)
+else:
+            st.dataframe(view, use_container_width=True)
 
     elif tab=="Visit Summary":
         if full_df.empty: st.info("No visits yet.")
