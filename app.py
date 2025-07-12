@@ -130,3 +130,24 @@ with right:
                 df_f = full_df[full_df["Date"]>=today-datetime.timedelta(days=30)]
             else:
                 df_f = full_df.copy()
+            visits = df_f.groupby(["Manager Name","Kitchen Name"]).size().reset_index(name="Visits")
+            st.dataframe(visits, use_container_width=True)
+
+    elif tab=="Roaster Entry":
+        st.subheader("📆 Submit Weekly Roaster")
+        with st.form("roaster_form"):
+            selected_manager = st.selectbox("Manager Name", manager_list, key="re_manager")
+            week_start = st.date_input("Week Starting (Monday)", value=datetime.date.today(), key="re_week")
+            days = [week_start + datetime.timedelta(days=i) for i in range(7)]
+            entries = []
+            for day in days:
+                st.markdown(f"**{day.strftime('%A %d-%b')}**")
+                kitchen = st.selectbox(f"Kitchen for {day.strftime('%A')}", [""] + kitchens, key=str(day))
+                remark = st.text_input(f"Remarks for {day.strftime('%A')}", key=f"rem_{day}")
+                if kitchen:
+                    entries.append([day.strftime('%Y-%m-%d'), selected_manager, kitchen, remark])
+            submit_roaster = st.form_submit_button("Submit Roaster")
+            if submit_roaster:
+                for row in entries:
+                    roaster_sheet.append_row(row)
+                st.success("✅ Roaster submitted successfully!")
