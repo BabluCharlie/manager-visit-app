@@ -25,9 +25,28 @@ st.markdown(
         .stCameraInput,
         .stDataFrame,
         .stForm,
-        .stButton button {background-color: white !important; color: black !important; border-radius: 10px; padding: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);} 
-        button[kind="primary"] {background-color: #006400 !important; color: white !important;} 
-        button[kind="primary"]:hover {background-color: #228B22 !important; transition: 0.3s ease;}
+        .stButton button {
+            background-color: white !important;
+            color: black !important;
+            border-radius: 10px;
+            padding: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        } 
+        .stSelectbox div[data-baseweb="select"] > div {
+            background-color: white !important;
+            color: black !important;
+        }
+        .stSelectbox div[data-baseweb="select"] input {
+            color: black !important;
+        }
+        button[kind="primary"] {
+            background-color: #006400 !important; 
+            color: white !important;
+        } 
+        button[kind="primary"]:hover {
+            background-color: #228B22 !important; 
+            transition: 0.3s ease;
+        }
     </style>
     """,
     unsafe_allow_html=True,
@@ -37,23 +56,18 @@ st.markdown('<div class="title">HYBB Attendance System</div>', unsafe_allow_html
 st.markdown('<div class="company">Hygiene Bigbite Pvt Ltd</div>', unsafe_allow_html=True)
 
 # -------------------- GOOGLE AUTH --------------------
-scope = [
-    "https://spreadsheets.google.com/feeds",
-    "https://www.googleapis.com/auth/drive",
-]
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(
     json.loads(st.secrets["GOOGLE_SHEETS_CREDS"]), scope
 )
 client = gspread.authorize(creds)
 worksheet = client.open("Manager Visit Tracker").sheet1
 
-# Load Roaster sheet (create if it doesn't exist) --------------------
+# Load or create Roaster sheet
 try:
     roaster_sheet = client.open("Manager Visit Tracker").worksheet("Roaster")
 except gspread.exceptions.WorksheetNotFound:
-    roaster_sheet = (
-        client.open("Manager Visit Tracker").add_worksheet("Roaster", rows=1000, cols=5)
-    )
+    roaster_sheet = client.open("Manager Visit Tracker").add_worksheet("Roaster", rows=1000, cols=5)
     roaster_sheet.insert_row(["Date", "Manager", "Kitchen", "Login Time", "Remarks"], 1)
 roaster_df = pd.DataFrame(roaster_sheet.get_all_records())
 if not roaster_df.empty and "Date" in roaster_df.columns:
@@ -61,59 +75,8 @@ if not roaster_df.empty and "Date" in roaster_df.columns:
 
 # -------------------- CONSTANTS --------------------
 DRIVE_FOLDER_ID = "1i5SnIkpMPqtU1kSVVdYY4jQK1lwHbR9G"
-manager_list = [
-    "",
-    "Ayub Sait",
-    "Rakesh Babu",
-    "John Joseph",
-    "Naveen Kumar M",
-    "Sangeetha RM",
-    "Joy Matabar",
-    "Sonu Kumar",
-    "Samsudeen",
-    "Tauseef",
-    "Bablu C",
-    "Umesh M",
-    "Selva Kumar",
-    "Srividya",
-]
-kitchens = [
-    "ANR01.BLR22",
-    "BSK01.BLR19",
-    "WFD01.BLR06",
-    "MAR01.BLR05",
-    "BTM01.BLR03",
-    "IND01.BLR01",
-    "HSR01.BLR02",
-    "VDP01.CHN02",
-    "MGP01.CHN01",
-    "CMP01.CHN10",
-    "KLN01.BLR09",
-    "TKR01.BLR29",
-    "CRN01.BLR17",
-    "SKN01.BLR07",
-    "HNR01.BLR16",
-    "RTN01.BLR23",
-    "YLK01.BLR15",
-    "NBR01.BLR21",
-    "PGD01.CHN06",
-    "PRR01.CHN04",
-    "FZT01.BLR20",
-    "ECT01.BLR24",
-    "SJP01.BLR08",
-    "KPR01.BLR41",
-    "BSN01.BLR40",
-    "VNR01.BLR18",
-    "SDP01.BLR34",
-    "TCP01.BLR27",
-    "BOM01.BLR04",
-    "CK-Corp",
-    "KOR01.BLR12",
-    "SKM01.CHN03",
-    "WFD02.BLR13",
-    "KDG01.BLR14",
-]
-
+manager_list = ["", "Ayub Sait", "Rakesh Babu", "John Joseph", "Naveen Kumar M", "Sangeetha RM", "Joy Matabar", "Sonu Kumar", "Samsudeen", "Tauseef", "Bablu C", "Umesh M", "Selva Kumar", "Srividya"]
+kitchens = ["ANR01.BLR22", "BSK01.BLR19", "WFD01.BLR06", "MAR01.BLR05", "BTM01.BLR03", "IND01.BLR01", "HSR01.BLR02", "VDP01.CHN02", "MGP01.CHN01", "CMP01.CHN10", "KLN01.BLR09", "TKR01.BLR29", "CRN01.BLR17", "SKN01.BLR07", "HNR01.BLR16", "RTN01.BLR23", "YLK01.BLR15", "NBR01.BLR21", "PGD01.CHN06", "PRR01.CHN04", "FZT01.BLR20", "ECT01.BLR24", "SJP01.BLR08", "KPR01.BLR41", "BSN01.BLR40", "VNR01.BLR18", "SDP01.BLR34", "TCP01.BLR27", "BOM01.BLR04", "CK-Corp","KOR01.BLR12", "SKM01.CHN03", "WFD02.BLR13", "KDG01.BLR14"]
 # -------------------- LAYOUT --------------------
 left_col, right_col = st.columns([2, 1])
 
@@ -183,7 +146,7 @@ with left_col:
                 location_url,
             ]
         )
-        st.success("Punch recorded!")
+        st.success("✅ Punch recorded!")
         st.rerun()
 
 # -------- RIGHT: Dashboard Tabs --------
@@ -200,13 +163,11 @@ with right_col:
         ),
     )
 
-    # -------- Pull attendance data once --------
     records = worksheet.get_all_records()
     full_df = pd.DataFrame(records)
     if not full_df.empty:
         full_df["Date"] = pd.to_datetime(full_df["Date"], errors="coerce").dt.date
 
-    # ---------------- TAB: Roaster View ----------------
     if tab == "Roaster View":
         if roaster_df.empty:
             st.info("No roaster data.")
@@ -219,8 +180,6 @@ with right_col:
             temp = temp[temp["Date"] == date_filter]
             st.dataframe(temp, use_container_width=True)
 
-    # ---------------- TAB: Attendance ------------------
-    # ---------------- TAB: Attendance ------------------
     elif tab == "Attendance":
         if full_df.empty:
             st.info("No attendance data.")
@@ -239,3 +198,43 @@ with right_col:
                     view_df = view_df.drop(columns=["key"])
 
                 st.dataframe(view_df, use_container_width=True)
+
+    elif tab == "Visit Summary":
+        if full_df.empty:
+            st.info("No visit data.")
+        else:
+            freq = st.radio("Frequency", ["Last 7 Days", "Last 30 Days", "All Time"])
+            today = datetime.date.today()
+            if freq == "Last 7 Days":
+                df_f = full_df[full_df["Date"] >= today - datetime.timedelta(days=7)]
+            elif freq == "Last 30 Days":
+                df_f = full_df[full_df["Date"] >= today - datetime.timedelta(days=30)]
+            else:
+                df_f = full_df.copy()
+            visits = df_f.groupby(["Manager Name", "Kitchen Name"]).size().reset_index(name="Visits")
+            st.dataframe(visits, use_container_width=True)
+
+    elif tab == "Roaster Entry":
+        st.subheader("📆 Submit Weekly Roaster")
+        with st.form("roaster_form"):
+            selected_manager = st.selectbox("Manager Name", manager_list)
+            next_monday = datetime.date.today() + datetime.timedelta(days=(7 - datetime.date.today().weekday()) % 7)
+            week_start = st.date_input("Week Starting (Monday)", value=next_monday)
+            days = [week_start + datetime.timedelta(days=i) for i in range(7)]
+            entries = []
+            time_choices = [
+                (datetime.datetime.combine(datetime.date.today(), datetime.time(7, 0)) + datetime.timedelta(minutes=30 * i)).time().strftime("%H:%M")
+                for i in range(34)
+            ]
+            for day in days:
+                st.markdown(f"**{day.strftime('%A %d-%b')}**")
+                kitchen = st.selectbox(f"Kitchen for {day.strftime('%A')}", kitchens, key=f"k_{day}")
+                login_time = st.selectbox(f"Login Time for {day.strftime('%A')}", time_choices, key=f"t_{day}")
+                remark = st.text_input(f"Remarks for {day.strftime('%A')}", key=f"rem_{day}")
+                if kitchen:
+                    entries.append([day.strftime('%Y-%m-%d'), selected_manager, kitchen, login_time, remark])
+            submit_roaster = st.form_submit_button("Submit Roaster")
+            if submit_roaster:
+                for row in entries:
+                    roaster_sheet.append_row(row)
+                st.success("✅ Roaster submitted successfully!")
