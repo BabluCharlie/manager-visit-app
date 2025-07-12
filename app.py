@@ -52,8 +52,9 @@ if not roaster_df.empty and "Date" in roaster_df.columns:
 # -------------------- CONSTANTS --------------------
 DRIVE_FOLDER_ID = "1i5SnIkpMPqtU1kSVVdYY4jQK1lwHbR9G"
 SHARED_DRIVE_ID = ""
-manager_list = ["", "Ayub Sait", "Rakesh Babu", "John Joseph", "Naveen Kumar M", "Sangeetha RM", "Joy Matabar", "Sonu Kumar", "Samsudeen", "Tauseef", "Bablu C", "Umesh M", "Selva Kumar", "Srividya"]
-kitchens = ["ANR01.BLR22", "BSK01.BLR19", "WFD01.BLR06", "MAR01.BLR05", "BTM01.BLR03", "IND01.BLR01", "HSR01.BLR02", "VDP01.CHN02", "MGP01.CHN01", "CMP01.CHN10", "KLN01.BLR09", "TKR01.BLR29", "CRN01.BLR17", "SKN01.BLR07", "HNR01.BLR16", "RTN01.BLR23", "YLK01.BLR15", "NBR01.BLR21", "PGD01.CHN06", "PRR01.CHN04", "FZT01.BLR20", "ECT01.BLR24", "SJP01.BLR08", "KPR01.BLR41", "BSN01.BLR40", "VNR01.BLR18", "SDP01.BLR34", "TCP01.BLR27", "BOM01.BLR04", "CK-Corp","KOR01.BLR12", "SKM01.CHN03", "WFD02.BLR13", "KDG01.BLR14"]
+manager_list = ["", "Ayub Sait", "Rakesh Babu", "John Joseph", "Naveen Kumar M", "Sangeetha RM", "Joy Matabar", "Sonu Kumar", "Samsudeen", "Tauseef", "Bablu C", "Umesh M"]
+kitchens = ["ANR01.BLR22", "BSK01.BLR19", "WFD01.BLR06", "MAR01.BLR05", "BTM01.BLR03", "IND01.BLR01", "HSR01.BLR02", "VDP01.CHN02", "MGP01.CHN01", "CMP01.CHN10", "KLN01.BLR09", "TKR01.BLR29", "CRN01.BLR17", "SKN01.BLR07", "HNR01.BLR16", "RTN01.BLR23", "YLK01.BLR15", "NBR01.BLR21", "PGD01.CHN06", "PRR01.CHN04", "FZT01.BLR20", "ECT01.BLR24", "SJP01.BLR08", "KPR01.BLR41", "BSN01.BLR40", "VNR01.BLR18", "SDP01.BLR34", "TCP01.BLR27", "BOM01.BLR04", "CK-Corp"]
+
 # -------------------- LAYOUT --------------------
 left, right = st.columns([2,1])
 
@@ -116,8 +117,8 @@ with right:
                 view["key"] = view["Manager Name"] + "|" + view["Kitchen Name"]
                 roster_today["key"] = roster_today["Manager"] + "|" + roster_today["Kitchen"]
                 view["Mismatch"] = ~view["key"].isin(roster_today["key"])
-                style = view.style.apply(lambda x: ['background-color:#FFCDD2' if v else '' for v in x], subset=["Mismatch"])
-                st.dataframe(style.hide(columns=["key"]), use_container_width=True)
+                view = view.drop(columns=["key"])  # drop helper key
+st.dataframe(view, use_container_width=True)
             else:
                 st.dataframe(view, use_container_width=True)
 
