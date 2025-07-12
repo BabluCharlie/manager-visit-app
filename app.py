@@ -159,7 +159,7 @@ with right:
             if submit_roaster:
                 for row in entries:
                     roaster_sheet.append_row(row)
-                st.success("✅ Roaster submitted successfully!"):
+                st.success("✅ Roaster submitted successfully!")
         if full_df.empty: st.info("No visits yet.")
         else:
             freq = st.radio("Frequency", ["Last 7 Days","Last 30 Days","All Time"], key="vs_freq")
