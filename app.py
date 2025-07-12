@@ -17,6 +17,7 @@ st.markdown("""
         body {background-color: #FFA500;}
         .title {font-size: 32px; color: #006400; font-weight: bold; text-align: center; margin-top: 10px;}
         .company {font-size: 18px; text-align: center; color: white; margin-bottom: 20px;}
+        .mismatch {background-color:#FFCDD2 !important;}
     </style>
 """, unsafe_allow_html=True)
 
@@ -33,7 +34,9 @@ worksheet = client.open("Manager Visit Tracker").sheet1
 try:
     roaster_sheet = client.open("Manager Visit Tracker").worksheet("Roaster")
     roaster_df = pd.DataFrame(roaster_sheet.get_all_records())
-except:
+    if "Date" in roaster_df.columns:
+        roaster_df["Date"] = pd.to_datetime(roaster_df["Date"], errors='coerce').dt.date
+except Exception:
     roaster_df = pd.DataFrame()
 
 # -------------------- CONSTANTS --------------------
@@ -55,83 +58,88 @@ manager_list = ["", "Ayub Sait", "Rakesh Babu", "John Joseph", "Naveen Kumar M",
 kitchens = ["", "ANR01.BLR22", "BSK01.BLR19", "WFD01.BLR06", "MAR01.BLR05", "BTM01.BLR03", "IND01.BLR01", "HSR01.BLR02", "VDP01.CHN02", "MGP01.CHN01", "CMP01.CHN10", "KLN01.BLR09", "TKR01.BLR29", "CRN01.BLR17", "SKN01.BLR07", "HNR01.BLR16", "RTN01.BLR23", "YLK01.BLR15", "NBR01.BLR21", "PGD01.CHN06", "PRR01.CHN04", "FZT01.BLR20", "ECT01.BLR24", "SJP01.BLR08", "KPR01.BLR41", "BSN01.BLR40", "VNR01.BLR18", "SDP01.BLR34", "TCP01.BLR27", "BOM01.BLR04", "CK-Corp"]
 
 with st.form("punch_form"):
-    manager = st.selectbox("Select Manager", manager_list, index=0, key="manager")
-    kitchen = st.selectbox("Select Kitchen", kitchens, index=0, key="kitchen")
+    manager = st.selectbox("Select Manager", manager_list, key="manager")
+    kitchen = st.selectbox("Select Kitchen", kitchens, key="kitchen")
     action = st.radio("Action", ["Punch In", "Punch Out"], key="action")
     photo = st.camera_input("Take a Selfie (Required)", key="selfie")
     submitted = st.form_submit_button("Submit Punch")
 
 if submitted:
-    if not manager or not kitchen:
-        st.warning("⚠️ Please select both Manager and Kitchen before submitting.")
-        st.stop()
-    if not photo:
-        st.error("📸 Please take a selfie before submitting.")
+    if not manager or not kitchen or not photo:
+        st.warning("All fields and selfie are required!")
         st.stop()
 
     indian_time = datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
     today_str = indian_time.strftime("%Y-%m-%d")
     time_str = indian_time.strftime("%H:%M:%S")
-
     g = geocoder.ipinfo('me')
     lat, lon = g.latlng if g.latlng else ("N/A", "N/A")
     location_url = f"https://www.google.com/maps?q={lat},{lon}" if lat != "N/A" else "Location not available"
 
     if any(r.get("Date") == today_str and r.get("Manager Name") == manager and r.get("Kitchen Name") == kitchen and r.get("Action") == action for r in worksheet.get_all_records()):
-        st.warning("⚠️ You've already submitted this punch today.")
+        st.warning("Duplicate punch detected for today.")
         st.stop()
 
-    selfie_url = ""
     upload_url = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true"
     headers = {"Authorization": f"Bearer {creds.get_access_token().access_token}"}
-    metadata = {
-        "name": f"{manager}_{today_str}_{time_str}.jpg",
-        "parents": [DRIVE_FOLDER_ID]
-    }
-    if SHARED_DRIVE_ID:
-        metadata["driveId"] = SHARED_DRIVE_ID
-    files = {
-        'data': ('metadata', json.dumps(metadata), 'application/json'),
-        'file': photo.getvalue()
-    }
-    resp = requests.post(upload_url, headers=headers, files=files)
-    if resp.status_code == 200:
-        file_id = resp.json()["id"]
-        selfie_url = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
-    else:
-        st.error("❌ Failed to upload selfie to Google Drive – please check folder ID & access.")
-        st.text(f"Status code: {resp.status_code}\nResponse: {resp.text}")
-        st.stop()
+    metadata = {"name": f"{manager}_{today_str}_{time_str}.jpg", "parents": [DRIVE_FOLDER_ID]}
+    if SHARED_DRIVE_ID: metadata["driveId"] = SHARED_DRIVE_ID
+    resp = requests.post(upload_url, headers=headers, files={'data': ('metadata', json.dumps(metadata), 'application/json'), 'file': photo.getvalue()})
+    selfie_url = f"https://drive.google.com/file/d/{resp.json().get('id')}/view?usp=sharing" if resp.status_code==200 else "UploadError"
 
     worksheet.append_row([today_str, time_str, manager, kitchen, action, lat, lon, selfie_url, location_url])
-    st.success("✅ Punch recorded successfully!")
-    st.markdown(f"[📍 Location Map]({location_url})")
-    st.markdown(f"[📸 View Selfie]({selfie_url})")
+    st.success("Punch recorded!")
     st.experimental_rerun()
 
-# -------------------- DASHBOARD --------------------
+# -------------------- DASHBOARD & ROASTER --------------------
+
 st.subheader("📅 Manager Roaster")
 if not roaster_df.empty:
-    st.dataframe(roaster_df)
+    mgr_filter = st.selectbox("Filter Manager", ["All"]+sorted(roaster_df["Manager"].unique().tolist())) if "Manager" in roaster_df.columns else "All"
+    date_filter = st.date_input("Filter Date (Roaster)", value=datetime.date.today()) if "Date" in roaster_df.columns else None
+
+    temp_roaster = roaster_df.copy()
+    if mgr_filter!="All" and "Manager" in temp_roaster.columns:
+        temp_roaster = temp_roaster[temp_roaster["Manager"]==mgr_filter]
+    if date_filter and "Date" in temp_roaster.columns:
+        temp_roaster = temp_roaster[temp_roaster["Date"]==date_filter]
+
+    st.dataframe(temp_roaster)
 else:
-    st.info("Roaster not available or failed to load.")
+    st.info("Roaster sheet not found.")
 
-st.subheader("📊 Dashboard Summary")
+st.subheader("📊 Attendance Dashboard")
 records = worksheet.get_all_records()
-df = pd.DataFrame(records)
+full_df = pd.DataFrame(records)
 
-if not df.empty:
-    df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
-    df = df.dropna(subset=["Date"])
-    df["Date"] = df["Date"].dt.date
+if not full_df.empty:
+    full_df["Date"] = pd.to_datetime(full_df["Date"], errors='coerce').dt.date
 
-    min_date = df["Date"].min()
-    max_date = df["Date"].max()
-    selected_date = st.date_input("Select a date", value=max_date, min_value=min_date, max_value=max_date)
+    min_date, max_date = full_df["Date"].min(), full_df["Date"].max()
+    dash_date = st.date_input("Select attendance date", value=max_date, min_value=min_date, max_value=max_date)
+    view_df = full_df[full_df["Date"]==dash_date]
 
-    filtered_df = df[df["Date"] == selected_date]
-    st.dataframe(filtered_df)
+    # Highlight mismatches between roaster and actual
+    if not roaster_df.empty and "Manager" in roaster_df.columns and "Date" in roaster_df.columns and "Kitchen" in roaster_df.columns:
+        roster_today = roaster_df[(roaster_df["Date"]==dash_date)][["Manager","Kitchen"]]
+        view_df["key"] = view_df["Manager Name"]+"|"+view_df["Kitchen Name"]
+        roster_today["key"] = roster_today["Manager"]+"|"+roster_today["Kitchen"]
+        view_df["Mismatch"] = ~view_df["key"].isin(roster_today["key"])
+        view_df_style = view_df.style.apply(lambda x: ['background-color:#FFCDD2' if v else '' for v in x], subset=["Mismatch"])
+        st.dataframe(view_df_style.hide(columns=["key"]))
+    else:
+        st.dataframe(view_df)
 
-    punch_summary = filtered_df.groupby(["Manager Name", "Kitchen Name", "Action"]).size().reset_index(name='Count')
-    st.markdown("### Summary")
-    st.dataframe(punch_summary)
+    # Visit frequency selection
+    freq = st.radio("Show visit counts for:", ["Last 7 Days","Last 30 Days","All Time"])
+    today = datetime.date.today()
+    if freq=="Last 7 Days":
+        count_df = full_df[full_df["Date"]>=today-datetime.timedelta(days=7)]
+    elif freq=="Last 30 Days":
+        count_df = full_df[full_df["Date"]>=today-datetime.timedelta(days=30)]
+    else:
+        count_df = full_df.copy()
+
+    visits = count_df.groupby(["Manager Name","Kitchen Name"]).size().reset_index(name="Visits")
+    st.markdown("### Visit Counts")
+    st.dataframe
