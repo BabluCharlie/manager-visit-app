@@ -137,7 +137,8 @@ with right:
         st.subheader("📆 Submit Weekly Roaster")
         with st.form("roaster_form"):
             selected_manager = st.selectbox("Manager Name", manager_list, key="re_manager")
-            week_start = st.date_input("Week Starting (Monday)", value=(datetime.date.today() - datetime.timedelta(days=datetime.date.today().weekday())), key="re_week"), key="re_week")
+            week_start = st.date_input("Week Starting (Monday)", value=(datetime.date.today() - datetime.timedelta(days=datetime.date.today().weekday())), key="re_week")
+
             days = [week_start + datetime.timedelta(days=i) for i in range(7)]
             entries = []
             for day in days:
