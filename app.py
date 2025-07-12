@@ -9,20 +9,32 @@ import pytz
 from oauth2client.service_account import ServiceAccountCredentials
 
 # -------------------- CONFIG --------------------
-st.set_page_config(page_title="HYBB Attendance System", layout="centered")
+st.set_page_config(page_title="HYBB Attendance System", layout="wide")
 
 # -------------------- STYLING --------------------
 st.markdown("""
     <style>
-        body {background-color: #FFA500;}
-        .title {font-size: 32px; color: #006400; font-weight: bold; text-align: center; margin-top: 10px;}
-        .company {font-size: 18px; text-align: center; color: white; margin-bottom: 20px;}
-        .mismatch {background-color:#FFCDD2 !important;}
-    </style>
+    body {background-color: #FFA500 !important;}
+    section.main {background-color: #FFA500 !important;}
+    .stApp {background-color: #FFA500 !important;}
+    .stMarkdown, .stTextInput, .stSelectbox, .stRadio, .stButton, .stCameraInput, .stDataFrame {
+        background-color: white !important;
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button[kind="primary"] {
+        background-color: #006400 !important;
+        color: white !important;
+    }
+    .title {font-size: 32px; color: #006400; font-weight: bold; text-align: center; margin-top: 10px;}
+    .company {font-size: 18px; text-align: center; color: white; margin-bottom: 20px; font-weight: bold;}
+    .mismatch {background-color:#FFCDD2 !important;}
+</style>
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="title">HYBB Attendance System</div>', unsafe_allow_html=True)
-st.markdown('<div class="company">Hygiene Bigbite Pvt Ltd</div>', unsafe_allow_html=True)
+st.markdown('<div class="company">Hygiene Bigbite Pvt ltd</div>', unsafe_allow_html=True)
 
 # -------------------- GOOGLE AUTH --------------------
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -52,10 +64,10 @@ if current_headers != expected_headers:
     else:
         worksheet.update("A1", [expected_headers])
 
-# -------------------- PAGE TABS --------------------
-page = st.radio("Navigate", ["Punch In/Out", "Dashboard"])
+# -------------------- LAYOUT --------------------
+col1, col2 = st.columns([2, 1])
 
-if page == "Punch In/Out":
+with col1:
     st.subheader("Punch In / Punch Out")
     manager_list = ["", "Ayub Sait", "Rakesh Babu", "John Joseph", "Naveen Kumar M", "Sangeetha RM", "Joy Matabar", "Sonu Kumar", "Samsudeen", "Tauseef", "Bablu C", "Umesh M"]
     kitchens = ["", "ANR01.BLR22", "BSK01.BLR19", "WFD01.BLR06", "MAR01.BLR05", "BTM01.BLR03", "IND01.BLR01", "HSR01.BLR02", "VDP01.CHN02", "MGP01.CHN01", "CMP01.CHN10", "KLN01.BLR09", "TKR01.BLR29", "CRN01.BLR17", "SKN01.BLR07", "HNR01.BLR16", "RTN01.BLR23", "YLK01.BLR15", "NBR01.BLR21", "PGD01.CHN06", "PRR01.CHN04", "FZT01.BLR20", "ECT01.BLR24", "SJP01.BLR08", "KPR01.BLR41", "BSN01.BLR40", "VNR01.BLR18", "SDP01.BLR34", "TCP01.BLR27", "BOM01.BLR04", "CK-Corp"]
@@ -94,52 +106,44 @@ if page == "Punch In/Out":
         st.success("Punch recorded!")
         st.experimental_rerun()
 
-elif page == "Dashboard":
-    st.subheader("📅 Manager Roaster")
-    if not roaster_df.empty:
-        mgr_filter = st.selectbox("Filter Manager", ["All"]+sorted(roaster_df["Manager"].unique().tolist())) if "Manager" in roaster_df.columns else "All"
-        date_filter = st.date_input("Filter Date (Roaster)", value=datetime.date.today()) if "Date" in roaster_df.columns else None
+with col2:
+    tab = st.radio("📊 Dashboard", ["Roaster", "Attendance", "Visit Summary"], format_func=lambda x: "📅 Roaster" if x=="Roaster" else ("📋 Attendance" if x=="Attendance" else "📊 Visit Summary"))
 
-        temp_roaster = roaster_df.copy()
-        if mgr_filter!="All" and "Manager" in temp_roaster.columns:
-            temp_roaster = temp_roaster[temp_roaster["Manager"]==mgr_filter]
-        if date_filter and "Date" in temp_roaster.columns:
-            temp_roaster = temp_roaster[temp_roaster["Date"]==date_filter]
-
-        st.dataframe(temp_roaster)
-    else:
-        st.info("Roaster sheet not found.")
-
-    st.subheader("📊 Attendance Dashboard")
     records = worksheet.get_all_records()
     full_df = pd.DataFrame(records)
+    full_df["Date"] = pd.to_datetime(full_df["Date"], errors='coerce').dt.date
 
-    if not full_df.empty:
-        full_df["Date"] = pd.to_datetime(full_df["Date"], errors='coerce').dt.date
+    if tab == "Roaster" and not roaster_df.empty:
+        mgr_filter = st.selectbox("Manager", ["All"]+sorted(roaster_df["Manager"].unique().tolist()))
+        date_filter = st.date_input("Date", value=datetime.date.today())
+        temp_roaster = roaster_df.copy()
+        if mgr_filter != "All":
+            temp_roaster = temp_roaster[temp_roaster["Manager"] == mgr_filter]
+        if date_filter:
+            temp_roaster = temp_roaster[temp_roaster["Date"] == date_filter]
+        st.dataframe(temp_roaster)
 
-        min_date, max_date = full_df["Date"].min(), full_df["Date"].max()
-        dash_date = st.date_input("Select attendance date", value=max_date, min_value=min_date, max_value=max_date)
-        view_df = full_df[full_df["Date"]==dash_date]
-
-        if not roaster_df.empty and "Manager" in roaster_df.columns and "Date" in roaster_df.columns and "Kitchen" in roaster_df.columns:
-            roster_today = roaster_df[(roaster_df["Date"]==dash_date)][["Manager","Kitchen"]]
-            view_df["key"] = view_df["Manager Name"]+"|"+view_df["Kitchen Name"]
-            roster_today["key"] = roster_today["Manager"]+"|"+roster_today["Kitchen"]
+    elif tab == "Attendance" and not full_df.empty:
+        dash_date = st.date_input("Attendance Date", value=datetime.date.today())
+        view_df = full_df[full_df["Date"] == dash_date]
+        if not roaster_df.empty:
+            roster_today = roaster_df[(roaster_df["Date"] == dash_date)][["Manager", "Kitchen"]]
+            view_df["key"] = view_df["Manager Name"] + "|" + view_df["Kitchen Name"]
+            roster_today["key"] = roster_today["Manager"] + "|" + roster_today["Kitchen"]
             view_df["Mismatch"] = ~view_df["key"].isin(roster_today["key"])
             view_df_style = view_df.style.apply(lambda x: ['background-color:#FFCDD2' if v else '' for v in x], subset=["Mismatch"])
             st.dataframe(view_df_style.hide(columns=["key"]))
         else:
             st.dataframe(view_df)
 
-        freq = st.radio("Show visit counts for:", ["Last 7 Days","Last 30 Days","All Time"])
+    elif tab == "Visit Summary" and not full_df.empty:
+        freq = st.radio("Frequency", ["Last 7 Days", "Last 30 Days", "All Time"])
         today = datetime.date.today()
-        if freq=="Last 7 Days":
-            count_df = full_df[full_df["Date"]>=today-datetime.timedelta(days=7)]
-        elif freq=="Last 30 Days":
-            count_df = full_df[full_df["Date"]>=today-datetime.timedelta(days=30)]
+        if freq == "Last 7 Days":
+            count_df = full_df[full_df["Date"] >= today - datetime.timedelta(days=7)]
+        elif freq == "Last 30 Days":
+            count_df = full_df[full_df["Date"] >= today - datetime.timedelta(days=30)]
         else:
             count_df = full_df.copy()
-
-        visits = count_df.groupby(["Manager Name","Kitchen Name"]).size().reset_index(name="Visits")
-        st.markdown("### Visit Counts")
+        visits = count_df.groupby(["Manager Name", "Kitchen Name"]).size().reset_index(name="Visits")
         st.dataframe(visits, use_container_width=True)
