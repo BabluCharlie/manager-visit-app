@@ -145,11 +145,11 @@ with right:
             days = [week_start + datetime.timedelta(days=i) for i in range(7)]
             entries = []
             # Pre‑compute login‑time choices 07:00‑23:30 every 30 min
-            time_choices = [(datetime.datetime.combine(datetime.date.today(), datetime.time(7, 0)) + datetime.timedelta(minutes=30*i)).time().strftime("%H:%M") for i in range(34)]
+            time_choices = [(datetime.time(7,0) + datetime.timedelta(minutes=30*i)).strftime("%H:%M") for i in range(0,34)]
             for day in days:
                 st.markdown(f"**{day.strftime('%A %d-%b')}**")
-                kitchen = st.selectbox(f"Kitchen for {day.strftime('%A')}", [""] + kitchens, key=f"k_{day}")
-                login_time = st.selectbox(f"Login Time for {day.strftime('%A')}", time_choices, key=f"t_{day}")
+                kitchen = st.selectbox(f"Kitchen for {day.strftime('%A')}", ["", "Week Off", "Comp-Off", "Leave"] + kitchens, key=f"k_{day}")
+                login_time = st.selectbox(f"Login Time for {day.strftime('%A')}", ["07:00"]+time_choices, key=f"t_{day}")
                 remark = st.text_input(f"Remarks for {day.strftime('%A')}", key=f"rem_{day}")
                 if kitchen:
                     entries.append([day.strftime('%Y-%m-%d'), selected_manager, kitchen, login_time, remark])
