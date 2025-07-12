@@ -14,22 +14,43 @@ st.set_page_config(page_title="HYBB Attendance System", layout="wide")
 # -------------------- STYLING --------------------
 st.markdown("""
     <style>
-    body {background-color: #FFA500 !important;}
-    section.main {background-color: #FFA500 !important;}
-    .stApp {background-color: #FFA500 !important;}
-    .stMarkdown, .stTextInput, .stSelectbox, .stRadio, .stButton, .stCameraInput, .stDataFrame {
+    body, .stApp, section.main {background-color: #FFA500 !important;}
+
+    .title {
+        font-size: 32px;
+        color: #006400;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 10px;
+    }
+    .company {
+        font-size: 18px;
+        text-align: center;
+        color: white;
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
+
+    .mismatch {background-color:#FFCDD2 !important;}
+
+    .stTextInput > div > input,
+    .stSelectbox > div > div,
+    .stRadio > div,
+    .stCameraInput,
+    .stDataFrame,
+    .stForm,
+    .stButton button {
         background-color: white !important;
-        padding: 10px;
+        color: black !important;
         border-radius: 10px;
+        padding: 8px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+
     button[kind="primary"] {
         background-color: #006400 !important;
         color: white !important;
     }
-    .title {font-size: 32px; color: #006400; font-weight: bold; text-align: center; margin-top: 10px;}
-    .company {font-size: 18px; text-align: center; color: white; margin-bottom: 20px; font-weight: bold;}
-    .mismatch {background-color:#FFCDD2 !important;}
     button[kind="primary"]:hover {
         background-color: #228B22 !important;
         transition: 0.3s ease;
