@@ -15,10 +15,20 @@ st.set_page_config(page_title="HYBB Attendance System", layout="wide")
 st.markdown(
     """
     <style>
-        body, .stApp, section.main {background-color: #FFA500 !important;}
-        .title {font-size: 32px; color: #006400; font-weight: bold; text-align: center; margin-top: 10px;}
-        .company {font-size: 18px; text-align: center; color: white; margin-bottom: 20px; font-weight: bold;}
-        .mismatch {background-color:#FFCDD2 !important;}
+        body, .stApp, section.main {
+            background-color: #FFA500 !important;
+        }
+        .title {
+            font-size: 32px; color: #006400; font-weight: bold;
+            text-align: center; margin-top: 10px;
+        }
+        .company {
+            font-size: 18px; text-align: center;
+            color: white; margin-bottom: 20px; font-weight: bold;
+        }
+        .mismatch {
+            background-color:#FFCDD2 !important;
+        }
         .stTextInput > div > input,
         .stSelectbox > div > div,
         .stRadio > div,
@@ -31,17 +41,22 @@ st.markdown(
             border-radius: 10px;
             padding: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        } 
-        .stSelectbox div[data-baseweb="select"] > div {
+        }
+
+        /* Force select dropdown visibility fix */
+        div[data-baseweb="select"] {
+            color: black !important;
+        }
+        div[data-baseweb="select"] * {
+            color: black !important;
+        }
+
+        /* Dropdown selected item */
+        div[data-baseweb="select"] > div {
             background-color: white !important;
             color: black !important;
         }
-        .stSelectbox div[data-baseweb="select"] input {
-            color: black !important;
-        }
-        .stSelectbox div[data-baseweb="select"] [role="option"] {
-            color: black !important;
-        }
+
         button[kind="primary"] {
             background-color: #006400 !important; 
             color: white !important;
