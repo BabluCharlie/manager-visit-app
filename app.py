@@ -129,4 +129,4 @@ with right:
             elif freq=="Last 30 Days":
                 df_f = full_df[full_df["Date"]>=today-datetime.timedelta(days=30)]
             else:
-                df_f =
+                df_f = full_df.copy()
