@@ -142,4 +142,4 @@ if not full_df.empty:
 
     visits = count_df.groupby(["Manager Name","Kitchen Name"]).size().reset_index(name="Visits")
     st.markdown("### Visit Counts")
-    st.dataframe
+    st.dataframe(visits, use_container_width=True)
