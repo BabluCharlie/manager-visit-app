@@ -43,16 +43,17 @@ st.markdown(
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* Force select dropdown visibility fix */
+        /* Dropdown fix */
         div[data-baseweb="select"] {
-            color: black !important;
+            background-color: white !important;
         }
         div[data-baseweb="select"] * {
             color: black !important;
         }
-
-        /* Dropdown selected item */
         div[data-baseweb="select"] > div {
+            color: black !important;
+        }
+        div[data-baseweb="select"] [role="option"] {
             background-color: white !important;
             color: black !important;
         }
@@ -88,16 +89,15 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(st.secrets["
 client = gspread.authorize(creds)
 worksheet = client.open("Manager Visit Tracker").sheet1
 
+# Load Roaster sheet (create if not exist)
 try:
     roaster_sheet = client.open("Manager Visit Tracker").worksheet("Roaster")
 except gspread.exceptions.WorksheetNotFound:
     roaster_sheet = client.open("Manager Visit Tracker").add_worksheet("Roaster", rows=1000, cols=5)
     roaster_sheet.insert_row(["Date", "Manager", "Kitchen", "Login Time", "Remarks"], 1)
 
-roaster_df = pd.DataFrame(roaster_sheet.get_all_records())
-if not roaster_df.empty and "Date" in roaster_df.columns:
-    roaster_df["Date"] = pd.to_datetime(roaster_df["Date"], errors="coerce").dt.date
-
+# (Additional logic for layout, punch form, and dashboard goes here...)
+# Be sure to use punch_success() and roaster_success() in the form submission logic.
 # -------------------- CONSTANTS --------------------
 DRIVE_FOLDER_ID = "1i5SnIkpMPqtU1kSVVdYY4jQK1lwHbR9G"
 manager_list = [
