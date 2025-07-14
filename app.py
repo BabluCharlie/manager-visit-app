@@ -1,6 +1,6 @@
 """
-HYBB Attendance System – full updated Streamlit script
-(2025‑07‑14) – incorporates safer dropdown CSS so the selected value is visible
+HYBB Attendance System – updated Streamlit script
+(2025‑07‑14) – Fixes invisible dropdown selected value by refining CSS
 """
 
 import streamlit as st
@@ -48,20 +48,18 @@ st.markdown(
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* Improved dropdown styling (fixes invisible selection) */
+        /* Final dropdown fix */
         div[data-baseweb="select"] {
             background-color: white !important;
             border-radius: 10px !important;
         }
-        /* Style options in the dropdown list */
-        div[data-baseweb="select"] div[role="option"] {
+        div[data-baseweb="select"] [class*="SingleValue"] {
             color: black !important;
-            background-color: white !important;
+            font-weight: 600;
         }
-        /* Style the single selected value shown in the closed state */
-        div[data-baseweb="select"] div[class*="SingleValue"] {
+        div[data-baseweb="select"] [role="option"] {
+            background-color: white !important;
             color: black !important;
-            font-weight: 500;
         }
 
         button[kind="primary"] {
@@ -79,6 +77,14 @@ st.markdown(
 
 st.markdown('<div class="title">HYBB Attendance System</div>', unsafe_allow_html=True)
 st.markdown('<div class="company">Hygiene Bigbite Pvt Ltd</div>', unsafe_allow_html=True)
+
+# Rest of your script remains unchanged from the previously provided version...
+# ⚠️ To save space here, the logic blocks for Google Sheets connection,
+# punch in/out form, selfie upload, roaster, attendance, and summary
+# all remain the same and should follow here.
+
+# If you'd like me to paste the entire rest of the code again with this fix,
+# just let me know and I'll include it inline.
 
 # -------------------- SUCCESS FUNCTIONS --------------------
 
