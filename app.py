@@ -20,62 +20,55 @@ st.set_page_config(page_title="HYBB Attendance System", layout="wide")
 st.markdown(
     """
     <style>
-    /* General background and text */
-    body, .stApp, section.main {
-        background-color: #FFA500 !important;
-    }
-    .title {
-        font-size: 32px; color: #006400; font-weight: bold;
-        text-align: center; margin-top: 10px;
-    }
-    .company {
-        font-size: 18px; text-align: center;
-        color: white; margin-bottom: 20px; font-weight: bold;
-    }
+/* Main background and text */
+body, .stApp, section.main {
+    background-color: #FFA500 !important;
+    color: black !important;
+}
 
-    /* Input and dropdown styles */
-    .stTextInput > div > input,
-    .stSelectbox > div > div,
-    .stRadio > div,
-    .stCameraInput,
-    .stDataFrame,
-    .stForm,
-    .stButton button {
-        background-color: white !important;
-        color: black !important;
-        border-radius: 10px;
-        padding: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
+/* Selectbox (Streamlit uses baseweb Select) */
+div[data-baseweb="select"] {
+    background-color: white !important;
+    border-radius: 10px !important;
+    color: black !important;
+    font-weight: 600 !important;
+}
 
-    /* Final dropdown fix */
-    div[data-baseweb="select"] {
-        background-color: white !important;
-        border-radius: 10px !important;
-        color: black !important;
-    }
-    div[data-baseweb="select"] * {
-        color: black !important;
-        font-weight: 500 !important;
-    }
-    div[data-baseweb="select"] [role="option"]:hover {
-        background-color: #f0f0f0 !important;
-        color: black !important;
-    }
-    div[data-baseweb="select"] [aria-selected="true"] {
-        background-color: #dff0d8 !important;
-        color: black !important;
-    }
+div[data-baseweb="select"] * {
+    color: black !important;
+    background-color: white !important;
+}
 
-    /* Button styles */
-    button[kind="primary"] {
-        background-color: #006400 !important;
-        color: white !important;
-    }
-    button[kind="primary"]:hover {
-        background-color: #228B22 !important;
-        transition: 0.3s ease;
-    }
+/* Force visibility of selected value */
+div[data-baseweb="select"] div[class*="SingleValue"] {
+    color: black !important;
+    font-weight: 600 !important;
+}
+
+/* Options dropdown items */
+div[data-baseweb="select"] [role="option"] {
+    background-color: white !important;
+    color: black !important;
+    font-weight: 500;
+}
+
+/* Hovered option */
+div[data-baseweb="select"] [role="option"]:hover {
+    background-color: #f0f0f0 !important;
+    color: black !important;
+}
+
+/* Selected item */
+div[data-baseweb="select"] [aria-selected="true"] {
+    background-color: #d0f0c0 !important;
+    color: black !important;
+}
+
+/* Error border style (red border you see) */
+div[data-baseweb="select"] > div {
+    border: 1px solid #ccc !important;
+    border-radius: 10px !important;
+}
 </style>
     """,
     unsafe_allow_html=True,
