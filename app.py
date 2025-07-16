@@ -107,10 +107,14 @@ if "user_lat" not in st.session_state:
     st.session_state["user_lon"] = None
 
 if get_geolocation and (st.session_state["user_lat"] is None or st.session_state["user_lon"] is None):
-    loc = get_geolocation(timeout=10_000)  # ms; ask browser once
-    if loc and loc.get("coords"):
-        st.session_state["user_lat"] = loc["coords"].get("latitude")
-        st.session_state["user_lon"] = loc["coords"].get("longitude")
+    try:
+        loc = get_geolocation(timeout=10_000)  # safe browser context
+        if loc and loc.get("coords"):
+            st.session_state["user_lat"] = loc["coords"].get("latitude")
+            st.session_state["user_lon"] = loc["coords"].get("longitude")
+    except Exception as e:
+        st.warning(f"⚠️ Unable to get browser location: {e}")
+
 
 # -------------------- GOOGLE AUTH --------------------
 scope = [
