@@ -20,57 +20,63 @@ st.set_page_config(page_title="HYBB Attendance System", layout="wide")
 st.markdown(
     """
     <style>
-        body, .stApp, section.main {
-            background-color: #FFA500 !important;
-        }
-        .title {
-            font-size: 32px; color: #006400; font-weight: bold;
-            text-align: center; margin-top: 10px;
-        }
-        .company {
-            font-size: 18px; text-align: center;
-            color: white; margin-bottom: 20px; font-weight: bold;
-        }
-        .mismatch {
-            background-color:#FFCDD2 !important;
-        }
-        .stTextInput > div > input,
-        .stSelectbox > div > div,
-        .stRadio > div,
-        .stCameraInput,
-        .stDataFrame,
-        .stForm,
-        .stButton button {
-            background-color: white !important;
-            color: black !important;
-            border-radius: 10px;
-            padding: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+    /* General background and text */
+    body, .stApp, section.main {
+        background-color: #FFA500 !important;
+    }
+    .title {
+        font-size: 32px; color: #006400; font-weight: bold;
+        text-align: center; margin-top: 10px;
+    }
+    .company {
+        font-size: 18px; text-align: center;
+        color: white; margin-bottom: 20px; font-weight: bold;
+    }
 
-        /* Final dropdown fix */
-        div[data-baseweb="select"] {
-            background-color: white !important;
-            border-radius: 10px !important;
-        }
-        div[data-baseweb="select"] [class*="SingleValue"] {
-            color: black !important;
-            font-weight: 600;
-        }
-        div[data-baseweb="select"] [role="option"] {
-            background-color: white !important;
-            color: black !important;
-        }
+    /* Input and dropdown styles */
+    .stTextInput > div > input,
+    .stSelectbox > div > div,
+    .stRadio > div,
+    .stCameraInput,
+    .stDataFrame,
+    .stForm,
+    .stButton button {
+        background-color: white !important;
+        color: black !important;
+        border-radius: 10px;
+        padding: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
 
-        button[kind="primary"] {
-            background-color: #006400 !important; 
-            color: white !important;
-        } 
-        button[kind="primary"]:hover {
-            background-color: #228B22 !important; 
-            transition: 0.3s ease;
-        }
-    </style>
+    /* Final dropdown fix */
+    div[data-baseweb="select"] {
+        background-color: white !important;
+        border-radius: 10px !important;
+        color: black !important;
+    }
+    div[data-baseweb="select"] * {
+        color: black !important;
+        font-weight: 500 !important;
+    }
+    div[data-baseweb="select"] [role="option"]:hover {
+        background-color: #f0f0f0 !important;
+        color: black !important;
+    }
+    div[data-baseweb="select"] [aria-selected="true"] {
+        background-color: #dff0d8 !important;
+        color: black !important;
+    }
+
+    /* Button styles */
+    button[kind="primary"] {
+        background-color: #006400 !important;
+        color: white !important;
+    }
+    button[kind="primary"]:hover {
+        background-color: #228B22 !important;
+        transition: 0.3s ease;
+    }
+</style>
     """,
     unsafe_allow_html=True,
 )
@@ -90,7 +96,7 @@ st.markdown('<div class="company">Hygiene Bigbite Pvt Ltd</div>', unsafe_allow_h
 
 def punch_success():
     st.success("✅ Attendance has been successfully recorded. Thank you for visiting the kitchen!")
-    st.experimental_rerun()
+    # Removed rerun to prevent crash
 
 
 def roaster_success():
