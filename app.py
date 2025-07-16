@@ -156,6 +156,7 @@ manager_list = [
     "Umesh M",
     "Selva Kumar",
     "Srividya",
+    "Test",
 ]
 
 kitchens = [
