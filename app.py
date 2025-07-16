@@ -204,8 +204,20 @@ with left_col:
         sel_kitchen = st.selectbox("Kitchen", [""] + kitchens)
         sel_action = st.radio("Action", ["Punch In", "Punch Out"])
         photo = st.camera_input("Selfie (Required)")
-        punch_submit = st.form_submit_button("Submit Punch")
 
+        # --- NEW ► precise GPS via browser ---
+        coords = streamlit_js_eval(
+            js_expressions="""
+                navigator.geolocation.getCurrentPosition(
+                  (pos)=>({lat:pos.coords.latitude, lon:pos.coords.longitude}),
+                  (err)=>({lat:null, lon:null})
+                )
+            """,
+            key="get_geo"
+        )
+        # --------------------------------------
+
+        punch_submit = st.form_submit_button("Submit Punch")
     if punch_submit:
         if not sel_manager or not sel_kitchen or photo is None:
             st.warning("All fields & selfie required!")
@@ -214,13 +226,19 @@ with left_col:
         now = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
         today_str, time_str = now.strftime("%Y-%m-%d"), now.strftime("%H:%M:%S")
 
-        # Geo‑location via IP
-        g = geocoder.ipinfo("me")
-        lat, lon = g.latlng if g.latlng else ("N/A", "N/A")
+        # Prefer GPS, fall back to IP
+        lat = coords["lat"] if coords and coords["lat"] is not None else None
+        lon = coords["lon"] if coords and coords["lon"] is not None else None
+        if lat is None:  # no GPS (user blocked or desktop w/o sensor)
+            g = geocoder.ipinfo("me")
+            lat, lon = g.latlng if g.latlng else (None, None)
+
+        lat = lat if lat is not None else "N/A"
+        lon = lon if lon is not None else "N/A"
         location_url = (
             f"https://www.google.com/maps?q={lat},{lon}" if lat != "N/A" else "Location N/A"
         )
-
+        
         # Prevent duplicate punches (same manager/kitchen/action same day)
         if any(
             r.get("Date") == today_str
