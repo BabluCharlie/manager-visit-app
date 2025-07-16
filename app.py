@@ -108,7 +108,7 @@ if "user_lat" not in st.session_state:
 
 if get_geolocation and (st.session_state["user_lat"] is None or st.session_state["user_lon"] is None):
     try:
-        loc = get_geolocation(timeout=10_000)  # safe browser context
+        loc = get_geolocation()  # safe browser context
         if loc and loc.get("coords"):
             st.session_state["user_lat"] = loc["coords"].get("latitude")
             st.session_state["user_lon"] = loc["coords"].get("longitude")
