@@ -238,7 +238,7 @@ with left_col:
         location_url = (
             f"https://www.google.com/maps?q={lat},{lon}" if lat != "N/A" else "Location N/A"
         )
-        
+
         # Prevent duplicate punches (same manager/kitchen/action same day)
         if any(
             r.get("Date") == today_str
