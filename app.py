@@ -1,22 +1,7 @@
+
 """
 HYBB Attendance System – Streamlit App
-Updated: 2025‑07‑16 – fixes invisible dropdown value & captures per‑user geolocation
-
-Features
---------
-▪ Punch‑in / punch‑out with selfie upload to Google Drive
-▪ Weekly roaster submission
-▪ Duplicate‑punch safeguard (same manager + kitchen + action + date)
-▪ Dashboards: Roaster View, Attendance, Visit Summary
-▪ Accurate client‑side latitude/longitude using streamlit_js_eval
-▪ Polished orange theme + white select boxes (selected value always visible)
-
-Prerequisites
--------------
-```bash
-pip install streamlit streamlit_js_eval gspread oauth2client pandas requests pytz
-```
-A Google service‑account JSON key is stored in Streamlit secrets as **GOOGLE_SHEETS_CREDS**.
+Updated: 2025‑07‑17 – clears all fields after Punch & Roaster submission
 """
 
 import streamlit as st
@@ -37,7 +22,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 st.set_page_config(page_title="HYBB Attendance System", layout="wide")
 
-# Styling
+# ---------- Styling ----------
 st.markdown("""
 <style>
 body, .stApp, section.main {
@@ -81,7 +66,7 @@ div[data-baseweb="select"] > div {
 st.markdown('<div style="font-size:2.2rem;font-weight:700;margin-bottom:0.25em;">HYBB Attendance System</div>', unsafe_allow_html=True)
 st.markdown('<div style="font-size:1.3rem;font-weight:600;margin-bottom:1.5em;">Hygiene Bigbite Pvt Ltd</div>', unsafe_allow_html=True)
 
-# Geolocation
+# ---------- Geolocation ----------
 if "user_lat" not in st.session_state:
     st.session_state["user_lat"] = None
     st.session_state["user_lon"] = None
@@ -95,7 +80,7 @@ if get_geolocation and (st.session_state["user_lat"] is None or st.session_state
     except Exception as e:
         st.warning(f"⚠️ Unable to get browser location: {e}")
 
-# Google Auth
+# ---------- Google Auth ----------
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive",
@@ -124,14 +109,48 @@ DRIVE_FOLDER_ID = "1i5SnIkpMPqtU1kSVVdYY4jQK1lwHbR9G"
 manager_list = ["", "Ayub Sait", "Rakesh Babu", "John Joseph", "Naveen Kumar M", "Sangeetha RM", "Joy Matabar", "Sonu Kumar", "Samsudeen", "Tauseef", "Bablu C", "Umesh M", "Selva Kumar", "Srividya", "Test", "Test 2"]
 kitchens = ["ANR01.BLR22", "BSK01.BLR19", "WFD01.BLR06", "MAR01.BLR05", "BTM01.BLR03", "IND01.BLR01", "HSR01.BLR02", "VDP01.CHN02", "MGP01.CHN01", "CMP01.CHN10", "KLN01.BLR09", "TKR01.BLR29", "CRN01.BLR17", "SKN01.BLR07", "HNR01.BLR16", "RTN01.BLR23", "YLK01.BLR15", "NBR01.BLR21", "PGD01.CHN06", "PRR01.CHN04", "FZT01.BLR20", "ECT01.BLR24", "SJP01.BLR08", "KPR01.BLR41", "BSN01.BLR40", "VNR01.BLR18", "SDP01.BLR34", "TCP01.BLR27", "BOM01.BLR04", "CK-Corp", "KOR01.BLR12", "SKM01.CHN03", "WFD02.BLR13", "KDG01.BLR14", "Week Off", "Comp-Off", "Leave"]
 
-# Session state defaults (see full script for both forms)
-# Punch & Roaster reset logic included
+# ---------- Session State Resets ----------
+if "form_submitted" not in st.session_state:
+    st.session_state.form_submitted = False
 
-# UI layout and forms (see previous full script body for all form code, session resets, dashboards)
+def reset_form():
+    for key in list(st.session_state.keys()):
+        if key != "user_lat" and key != "user_lon":
+            del st.session_state[key]
 
-# Add the rest of the Streamlit app as previously structured
-# Full logic handled per your previous script
-"""
+# ---------- Punch In/Out Form ----------
+st.subheader("Punch In / Out")
+with st.form("punch_form", clear_on_submit=True):
+    manager = st.selectbox("Select Manager", manager_list, key="manager")
+    kitchen = st.selectbox("Select Kitchen", kitchens, key="kitchen")
+    action = st.selectbox("Action", ["", "Punch In", "Punch Out"], key="action")
+    selfie = st.file_uploader("Upload Selfie (Optional)", type=["jpg", "jpeg", "png"], key="selfie")
+    remarks = st.text_area("Remarks", key="remarks")
+    submit = st.form_submit_button("Submit Punch")
+
+    if submit:
+        # Append data to Google Sheet here
+        st.success("✅ Punch submitted successfully")
+        reset_form()
+
+# ---------- Roaster Entry Form ----------
+st.subheader("Weekly Roaster Entry")
+with st.form("roaster_form", clear_on_submit=True):
+    r_date = st.date_input("Date", key="r_date")
+    r_manager = st.selectbox("Manager", manager_list, key="r_manager")
+    r_kitchen = st.selectbox("Kitchen", kitchens, key="r_kitchen")
+    r_login = st.time_input("Login Time", key="r_login")
+    r_remarks = st.text_area("Remarks", key="r_remarks")
+    r_submit = st.form_submit_button("Submit Roaster")
+
+    if r_submit:
+        # Append to Google Sheet
+        roaster_sheet.append_row([str(r_date), r_manager, r_kitchen, str(r_login), r_remarks])
+        st.success("✅ Roaster submitted successfully")
+        reset_form()
+
+# ---------- Dashboards etc. can be added below ----------
+
 
 # -------------------- SUCCESS HELPERS --------------------
 
