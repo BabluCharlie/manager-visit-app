@@ -180,8 +180,10 @@ def punch_success():
 
 
 def roaster_success():
-    st.success("✅ Roaster submitted successfully.")
-    st.experimental_rerun()
+    if r_submit:
+        roaster_sheet.append_row([str(r_date), r_manager, r_kitchen, str(r_login), r_remarks])
+        st.success("✅ Roaster submitted successfully")
+        reset_form()
 
 # -------------------- LAYOUT --------------------
 left_col, right_col = st.columns([2, 1])
