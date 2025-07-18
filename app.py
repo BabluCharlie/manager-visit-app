@@ -266,6 +266,8 @@ with right_col:
         }.get(x, x),
     )
 
+    st.write(f"Selected tab: {tab}")  # 👈 Add this here to debug
+
     # ---- Roaster Entry ----
     if tab == "Roaster Entry":
         st.subheader("📆 Submit Weekly Roaster")
