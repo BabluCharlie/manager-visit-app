@@ -283,7 +283,7 @@ with right_col:
             if submit_roaster and entries:
                 for row in entries:
                     roaster_sheet.append_row(row)
-                roaster_success()
+                st.success("✅ Roaster submitted successfully")
 
     # ---- Roaster View ----
     elif tab == "Roaster View":
