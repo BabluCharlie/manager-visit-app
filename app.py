@@ -256,7 +256,7 @@ with left_col:
 with right_col:
     tab = st.radio(
         "Dashboard",
-        ["Roaster View", "Attendance", "Visit Summary", "Roaster Entry"],
+        ["Roaster View", "Attendance", "Visit Summary", "Roaster Entry", "Daily Review"],
         format_func=lambda x: "📅 Roaster" if x == "Roaster View" else ("📋 Attendance" if x == "Attendance" else ("📊 Visit Summary" if x == "Visit Summary" else "📝 Roaster Entry")),
     )
 
@@ -339,3 +339,63 @@ with right_col:
                 df_f = full_df.copy()
             visits = df_f.groupby(["Manager Name", "Kitchen Name"]).size().reset_index(name="Visits")
             st.dataframe(visits, use_container_width=True)
+            # ---- Daily Review ----
+            elif tab == "Daily Review":
+            st.subheader("🧾 Daily Review Submission")
+
+            with st.form("daily_review_form"):
+                review_manager = st.selectbox("Manager Name", manager_list)
+                review_kitchens = st.multiselect("Kitchen(s) Visited", kitchens)
+                screenshot = st.file_uploader("Upload Screenshot (optional)", type=["jpg", "jpeg", "png"])
+                review_submit = st.form_submit_button("Submit Review")
+
+            if review_submit:
+                if not review_manager or not review_kitchens:
+                    st.warning("Please select manager and at least one kitchen.")
+                else:
+                    today = datetime.date.today().strftime("%Y-%m-%d")
+                    now_time = datetime.datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
+
+                    # Upload screenshot if present
+                    if screenshot:
+                        upload_resp = requests.post(
+                            "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",
+                            headers={"Authorization": f"Bearer {creds.get_access_token().access_token}"},
+                            files={
+                                "data": (
+                                    "metadata",
+                                    json.dumps({
+                                        "name": f"{review_manager}_{today}_{now_time}_screenshot.jpg",
+                                        "parents": [DRIVE_FOLDER_ID]
+                                    }),
+                                    "application/json",
+                                ),
+                                "file": screenshot.read(),
+                            },
+                        )
+                        screenshot_url = (
+                            f"https://drive.google.com/file/d/{upload_resp.json().get('id')}/view?usp=sharing"
+                            if upload_resp.status_code == 200 else "UploadErr"
+                        )
+                    else:
+                        screenshot_url = "Not Provided"
+
+                    # Prepare sheet
+                    try:
+                        review_sheet = client.open("Manager Visit Tracker").worksheet("Daily Review")
+                    except gspread.exceptions.WorksheetNotFound:
+                        review_sheet = client.open("Manager Visit Tracker").add_worksheet("Daily Review", rows=1000,
+                                                                                          cols=6)
+                        review_sheet.insert_row(["Date", "Time", "Manager", "Kitchens", "Screenshot Link"], 1)
+
+                    # Append data
+                    review_sheet.append_row([
+                        today,
+                        now_time,
+                        review_manager,
+                        ", ".join(review_kitchens),
+                        screenshot_url
+                    ])
+
+                    st.success("✅ Daily review submitted successfully.")
+
