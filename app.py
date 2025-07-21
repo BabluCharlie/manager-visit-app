@@ -309,10 +309,16 @@ with right_col:
 
     # ---- Attendance ----
     elif tab == "Attendance":
-        records = worksheet.get_all_records()
-        full_df = pd.DataFrame(records)
-        if not full_df.empty:
-            full_df["Date"] = pd.to_datetime(full_df["Date"], errors="coerce").dt.date
+        try:
+            records = worksheet.get_all_records()
+            full_df = pd.DataFrame(records)
+            if not full_df.empty:
+                full_df["Date"] = pd.to_datetime(full_df["Date"], errors="coerce").dt.date
+        except Exception as e:
+            full_df = pd.DataFrame()
+            st.error("⚠️ Error loading attendance data. Please check your sheet structure or try again later.")
+            st.exception(e)
+
         if full_df.empty:
             st.info("No attendance data.")
         else:
