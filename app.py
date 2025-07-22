@@ -352,23 +352,59 @@ with right_col:
 
     # ---- Visit Summary ----
     elif tab == "Visit Summary":
-        records = worksheet.get_all_records()
-        full_df = pd.DataFrame(records)
-        if not full_df.empty:
-            full_df["Date"] = pd.to_datetime(full_df["Date"], errors="coerce").dt.date
-        if full_df.empty:
-            st.info("No visits yet.")
-        else:
-            freq = st.radio("Frequency", ["Last 7 Days", "Last 30 Days", "All Time"])
-            today = datetime.date.today()
-            if freq == "Last 7 Days":
-                df_f = full_df[full_df["Date"] >= today - datetime.timedelta(days=7)]
-            elif freq == "Last 30 Days":
-                df_f = full_df[full_df["Date"] >= today - datetime.timedelta(days=30)]
-            else:
-                df_f = full_df.copy()
-            visits = df_f.groupby(["Manager Name", "Kitchen Name"]).size().reset_index(name="Visits")
-            st.dataframe(visits, use_container_width=True)
+        st.subheader("📊 Visit vs Roaster Summary")
+
+        try:
+            # Load Visit Records from Sheet1
+            visit_sheet = client.open("Manager Visit Tracker").worksheet("Sheet1")
+            visit_records = visit_sheet.get_all_records()
+            visit_df = pd.DataFrame(visit_records)
+
+            # Load Roaster Records from Roaster
+            roaster_sheet = client.open("Manager Visit Tracker").worksheet("Roaster")
+            roaster_records = roaster_sheet.get_all_records()
+            roaster_df = pd.DataFrame(roaster_records)
+
+            # Convert Date columns
+            visit_df["Date"] = pd.to_datetime(visit_df["Date"], errors="coerce").dt.date
+            roaster_df["Date"] = pd.to_datetime(roaster_df["Date"], errors="coerce").dt.date
+
+        except Exception as e:
+            st.error(f"Error loading sheets: {e}")
+            st.stop()
+
+        # Frequency filter
+        freq = st.radio("Frequency", ["Last 7 Days", "Last 30 Days", "All Time"])
+        today = datetime.date.today()
+        if freq == "Last 7 Days":
+            visit_df = visit_df[visit_df["Date"] >= today - datetime.timedelta(days=7)]
+            roaster_df = roaster_df[roaster_df["Date"] >= today - datetime.timedelta(days=7)]
+        elif freq == "Last 30 Days":
+            visit_df = visit_df[visit_df["Date"] >= today - datetime.timedelta(days=30)]
+            roaster_df = roaster_df[roaster_df["Date"] >= today - datetime.timedelta(days=30)]
+
+        # Rename columns for consistency
+        roaster_df.rename(columns={"Manager": "Manager Name", "Kitchen": "Scheduled Kitchen"}, inplace=True)
+        visit_df.rename(columns={"Kitchen Name": "Visited Kitchen"}, inplace=True)
+
+        # Merge by Manager + Date + Kitchen
+        summary_df = pd.merge(
+            roaster_df,
+            visit_df[["Date", "Manager Name", "Visited Kitchen"]],
+            left_on=["Date", "Manager Name", "Scheduled Kitchen"],
+            right_on=["Date", "Manager Name", "Visited Kitchen"],
+            how="left"
+        )
+
+        # Add match indicator
+        summary_df["Visited?"] = summary_df["Visited Kitchen"].apply(lambda x: "Yes" if pd.notna(x) else "No")
+
+        # Drop duplicate "Visited Kitchen" column (optional, can keep it too)
+        summary_df = summary_df.drop(columns=["Visited Kitchen"])
+
+        # Sort and show
+        summary_df = summary_df.sort_values(["Date", "Manager Name"])
+        st.dataframe(summary_df, use_container_width=True)
 
     # ---- Daily Review ----
     elif tab == "Daily Review":
