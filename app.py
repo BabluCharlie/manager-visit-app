@@ -360,16 +360,19 @@ with right_col:
         st.subheader("🧾 Daily Review Submission")
 
         with st.form("daily_review_form"):
-            review_manager = st.selectbox("Manager Name", manager_list)
+            review_manager = st.selectbox("Manager Name", ["-- Select --"] + manager_list)
             review_kitchens = st.multiselect("Kitchen(s) Visited", kitchens)
             screenshot = st.file_uploader("Upload Screenshot (mandatory)", type=["jpg", "jpeg", "png"])
             review_submit = st.form_submit_button("Submit Review")
 
         if review_submit:
-            if not review_manager or not review_kitchens:
-                st.warning("Please select manager and at least one kitchen.")
+            # Validation
+            if review_manager == "-- Select --":
+                st.warning("⚠️ Please select a manager.")
+            elif not review_kitchens:
+                st.warning("⚠️ Please select at least one kitchen.")
             elif not screenshot:
-                st.warning("⚠️ Screenshot upload is mandatory. Please upload a screenshot.")
+                st.warning("⚠️ Screenshot upload is mandatory.")
             else:
                 today = datetime.date.today().strftime("%Y-%m-%d")
                 now_time = datetime.datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
@@ -396,14 +399,14 @@ with right_col:
                     if upload_resp.status_code == 200 else "UploadErr"
                 )
 
-                # Prepare Daily Review sheet
+                # Access or create the Daily Review sheet
                 try:
                     review_sheet = client.open("Manager Visit Tracker").worksheet("Daily Review")
                 except gspread.exceptions.WorksheetNotFound:
                     review_sheet = client.open("Manager Visit Tracker").add_worksheet("Daily Review", rows=1000, cols=6)
                     review_sheet.insert_row(["Date", "Time", "Manager", "Kitchens", "Screenshot Link"], 1)
 
-                # Append data
+                # Append the data
                 review_sheet.append_row([
                     today,
                     now_time,
