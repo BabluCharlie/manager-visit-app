@@ -403,6 +403,15 @@ with right_col:
         summary_df = summary_df.drop(columns=["Visited Kitchen"])
 
         # Sort and show
+        # Add Manager Name dropdown filter
+        manager_list = ["All"] + sorted(summary_df["Manager Name"].dropna().unique())
+        selected_manager = st.selectbox("Select Kitchen Manager", manager_list)
+
+        # Filter based on selection
+        if selected_manager != "All":
+            summary_df = summary_df[summary_df["Manager Name"] == selected_manager]
+
+        # Sort and display
         summary_df = summary_df.sort_values(["Date", "Manager Name"])
         st.dataframe(summary_df, use_container_width=True)
 
