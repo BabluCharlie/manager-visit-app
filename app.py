@@ -362,39 +362,39 @@ with right_col:
         with st.form("daily_review_form"):
             review_manager = st.selectbox("Manager Name", manager_list)
             review_kitchens = st.multiselect("Kitchen(s) Visited", kitchens)
-            screenshot = st.file_uploader("Upload Screenshot (optional)", type=["jpg", "jpeg", "png"])
+            screenshot = st.file_uploader("Upload Screenshot (mandatory)", type=["jpg", "jpeg", "png"])
             review_submit = st.form_submit_button("Submit Review")
 
         if review_submit:
             if not review_manager or not review_kitchens:
                 st.warning("Please select manager and at least one kitchen.")
+            elif not screenshot:
+                st.warning("⚠️ Screenshot upload is mandatory. Please upload a screenshot.")
             else:
                 today = datetime.date.today().strftime("%Y-%m-%d")
                 now_time = datetime.datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
 
-                # Upload screenshot if present
-                if screenshot:
-                    upload_resp = requests.post(
-                        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",
-                        headers={"Authorization": f"Bearer {creds.get_access_token().access_token}"},
-                        files={
-                            "data": (
-                                "metadata",
-                                json.dumps({
-                                    "name": f"{review_manager}_{today}_{now_time}_screenshot.jpg",
-                                    "parents": [DRIVE_FOLDER_ID]
-                                }),
-                                "application/json",
-                            ),
-                            "file": screenshot.read(),
-                        },
-                    )
-                    screenshot_url = (
-                        f"https://drive.google.com/file/d/{upload_resp.json().get('id')}/view?usp=sharing"
-                        if upload_resp.status_code == 200 else "UploadErr"
-                    )
-                else:
-                    screenshot_url = "Not Provided"
+                # Upload screenshot
+                upload_resp = requests.post(
+                    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",
+                    headers={"Authorization": f"Bearer {creds.get_access_token().access_token}"},
+                    files={
+                        "data": (
+                            "metadata",
+                            json.dumps({
+                                "name": f"{review_manager}_{today}_{now_time}_screenshot.jpg",
+                                "parents": [DRIVE_FOLDER_ID]
+                            }),
+                            "application/json",
+                        ),
+                        "file": screenshot.read(),
+                    },
+                )
+
+                screenshot_url = (
+                    f"https://drive.google.com/file/d/{upload_resp.json().get('id')}/view?usp=sharing"
+                    if upload_resp.status_code == 200 else "UploadErr"
+                )
 
                 # Prepare Daily Review sheet
                 try:
