@@ -407,11 +407,17 @@ with right_col:
         manager_list = ["All"] + sorted(summary_df["Manager Name"].dropna().unique())
         selected_manager = st.selectbox("Select Kitchen Manager", manager_list)
 
-        # Filter based on selection
+        # Toggle to show only missed visits
+        missed_only = st.checkbox("🔍 Show Missed Visits Only")
+
+        # Apply filters
         if selected_manager != "All":
             summary_df = summary_df[summary_df["Manager Name"] == selected_manager]
 
-        # Sort and display
+        if missed_only:
+            summary_df = summary_df[summary_df["Visited?"] == "No"]
+
+        # Sort and show
         summary_df = summary_df.sort_values(["Date", "Manager Name"])
         st.dataframe(summary_df, use_container_width=True)
 
