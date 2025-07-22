@@ -419,7 +419,18 @@ with right_col:
 
         # Sort and show
         summary_df = summary_df.sort_values(["Date", "Manager Name"])
-        st.dataframe(summary_df, use_container_width=True)
+
+
+        # Function to highlight missed visits in red
+        def highlight_missed(row):
+            return ['background-color: #f8d7da' if row["Visited?"] == "No" else '' for _ in row]
+
+
+        # Apply styling
+        styled_df = summary_df.style.apply(highlight_missed, axis=1)
+
+        # Display styled dataframe
+        st.dataframe(styled_df, use_container_width=True)
 
     # ---- Daily Review ----
     elif tab == "Daily Review":
