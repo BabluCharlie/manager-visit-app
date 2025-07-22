@@ -300,12 +300,27 @@ with right_col:
             st.info("No roaster data.")
         else:
             mgr_filter = st.selectbox("Manager", ["All"] + sorted(roaster_df["Manager"].unique()))
-            date_filter = st.date_input("Date", value=datetime.date.today())
+
+            # Convert 'Date' column to datetime if not already
+            roaster_df["Date"] = pd.to_datetime(roaster_df["Date"])
+
+            # Extract week numbers
+            week_numbers = sorted(roaster_df["Date"].dt.isocalendar().week.unique())
+            week_filter = st.selectbox("Week Number", week_numbers)
+
+            # Filter by manager
             temp = roaster_df.copy()
             if mgr_filter != "All":
                 temp = temp[temp["Manager"] == mgr_filter]
-            temp = temp[temp["Date"] == date_filter]
-            st.dataframe(temp, use_container_width=True)
+
+            # Filter by week number
+            temp["Week"] = temp["Date"].dt.isocalendar().week
+            temp = temp[temp["Week"] == week_filter]
+
+            # Optional: Sort by date
+            temp = temp.sort_values("Date")
+
+            st.dataframe(temp.drop(columns=["Week"]), use_container_width=True)
 
     # ---- Attendance ----
     elif tab == "Attendance":
