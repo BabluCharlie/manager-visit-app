@@ -206,7 +206,7 @@ with left_col:
             st.stop()
 
         now = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
-        today_obj = now.date()
+        today_str, time_str = now.strftime("%Y-%m-%d"), now.strftime("%H:%M:%S")
 
         # Location from session (set by browser JS)
         lat = st.session_state.get("user_lat") or "N/A"
@@ -240,7 +240,7 @@ with left_col:
 
         # Append punch row
         worksheet.append_row([
-            today_obj,  # ← pass as a date object
+            today_str,
             time_str,
             sel_manager,
             sel_kitchen,
@@ -287,7 +287,7 @@ with right_col:
                 login_time = st.selectbox(f"Login Time for {day.strftime('%A')}", time_choices, key=f"t_{day}")
                 remark = st.text_input(f"Remarks for {day.strftime('%A')}", key=f"rem_{day}")
                 if kitchen:
-                    entries.append([day, selected_manager, kitchen, login_time, remark])
+                    entries.append([day.strftime("%Y-%m-%d"), selected_manager, kitchen, login_time, remark])
             submit_roaster = st.form_submit_button("Submit Roaster")
             if submit_roaster and entries:
                 for row in entries:
@@ -451,7 +451,7 @@ with right_col:
             elif not screenshot:
                 st.warning("⚠️ Screenshot upload is mandatory.")
             else:
-                today = datetime.date.today()
+                today = datetime.date.today().strftime("%Y-%m-%d")
                 now_time = datetime.datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
 
                 # Upload screenshot
