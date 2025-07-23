@@ -417,9 +417,9 @@ with right_col:
         if missed_only:
             summary_df = summary_df[summary_df["Visited?"] == "No"]
 
-        # Sort and show
+        # Sort and format date column
         summary_df = summary_df.sort_values(["Date", "Manager Name"])
-
+        summary_df["Date"] = pd.to_datetime(summary_df["Date"], errors="coerce").dt.strftime("%Y-%m-%d")
 
         # Function to highlight missed visits in red
         def highlight_missed(row):
