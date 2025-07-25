@@ -206,36 +206,19 @@ with left_col:
             st.stop()
 
         now = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
-        today_date = now.date()  # 👈 datetime.date object
-        today_str = today_date.strftime("%Y-%m-%d")  # 👈 for naming / text use
-        time_str = now.strftime("%H:%M:%S")
+        today_str, time_str = now.strftime("%Y-%m-%d"), now.strftime("%H:%M:%S")
 
         # Location from session (set by browser JS)
         lat = st.session_state.get("user_lat") or "N/A"
         lon = st.session_state.get("user_lon") or "N/A"
         location_url = f"https://www.google.com/maps?q={lat},{lon}" if lat != "N/A" else "Location N/A"
 
-
         # Prevent duplicate punches (same manager/kitchen/action same day)
-        def parse_date(d):
-            if isinstance(d, datetime.date):
-                return d
-            try:
-                return datetime.datetime.strptime(d, "%Y-%m-%d").date()
-            except:
-                return None
-
-
-        existing_records = worksheet.get_all_records()
-
         if any(
-                parse_date(r.get("Date")) == today_date and
-                r.get("Manager Name") == sel_manager and
-                r.get("Kitchen Name") == sel_kitchen and
-                r.get("Action") == sel_action
-                for r in existing_records
+            r.get("Date") == today_str and r.get("Manager Name") == sel_manager and r.get("Kitchen Name") == sel_kitchen and r.get("Action") == sel_action
+            for r in worksheet.get_all_records()
         ):
-            st.warning("⚠️ Duplicate punch today.")
+            st.warning("Duplicate punch today.")
             st.stop()
 
         # Upload selfie to Drive
@@ -257,7 +240,7 @@ with left_col:
 
         # Append punch row
         worksheet.append_row([
-            today_date,  # 👈 date as actual `datetime.date` object
+            today_str,
             time_str,
             sel_manager,
             sel_kitchen,
