@@ -206,7 +206,9 @@ with left_col:
             st.stop()
 
         now = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
-        today_date = now.date()  # ← use actual date object
+        today_date = now.date()  # 👈 datetime.date object
+        today_str = today_date.strftime("%Y-%m-%d")  # 👈 for naming / text use
+        time_str = now.strftime("%H:%M:%S")
 
         # Location from session (set by browser JS)
         lat = st.session_state.get("user_lat") or "N/A"
@@ -235,7 +237,7 @@ with left_col:
         ):
             st.warning("⚠️ Duplicate punch today.")
             st.stop()
-            
+
         # Upload selfie to Drive
         resp = requests.post(
             "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",
