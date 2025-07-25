@@ -206,7 +206,7 @@ with left_col:
             st.stop()
 
         now = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
-        today_str, time_str = now.strftime("%Y-%m-%d"), now.strftime("%H:%M:%S")
+        today_date = now.date()  # ← use actual date object
 
         # Location from session (set by browser JS)
         lat = st.session_state.get("user_lat") or "N/A"
@@ -240,7 +240,7 @@ with left_col:
 
         # Append punch row
         worksheet.append_row([
-            today_str,
+            today_date,  # 👈 date as actual `datetime.date` object
             time_str,
             sel_manager,
             sel_kitchen,
