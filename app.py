@@ -213,14 +213,29 @@ with left_col:
         lon = st.session_state.get("user_lon") or "N/A"
         location_url = f"https://www.google.com/maps?q={lat},{lon}" if lat != "N/A" else "Location N/A"
 
-        # Prevent duplicate punches (same manager/kitchen/action same day)
-        if any(
-            r.get("Date") == today_str and r.get("Manager Name") == sel_manager and r.get("Kitchen Name") == sel_kitchen and r.get("Action") == sel_action
-            for r in worksheet.get_all_records()
-        ):
-            st.warning("Duplicate punch today.")
-            st.stop()
 
+        # Prevent duplicate punches (same manager/kitchen/action same day)
+        def parse_date(d):
+            if isinstance(d, datetime.date):
+                return d
+            try:
+                return datetime.datetime.strptime(d, "%Y-%m-%d").date()
+            except:
+                return None
+
+
+        existing_records = worksheet.get_all_records()
+
+        if any(
+                parse_date(r.get("Date")) == today_date and
+                r.get("Manager Name") == sel_manager and
+                r.get("Kitchen Name") == sel_kitchen and
+                r.get("Action") == sel_action
+                for r in existing_records
+        ):
+            st.warning("⚠️ Duplicate punch today.")
+            st.stop()
+            
         # Upload selfie to Drive
         resp = requests.post(
             "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",
