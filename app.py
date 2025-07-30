@@ -239,19 +239,22 @@ with left_col:
         )
 
         # Append punch row
-        worksheet.append_row([
-            today_str,
-            time_str,
-            sel_manager,
-            sel_kitchen,
-            sel_action,
-            lat,
-            lon,
-            selfie_url,
-            location_url,
-        ])
-        punch_success()
-
+        try:
+            worksheet.append_row([
+                today_str,
+                time_str,
+                sel_manager,
+                sel_kitchen,
+                sel_action,
+                lat,
+                lon,
+                selfie_url,
+                location_url,
+            ])
+            punch_success()
+        except Exception as e:
+            st.error("❌ Error submitting attendance. Please try again.")
+            st.exception(e)
 # ------- RIGHT COLUMN: Dashboards & Roaster -------
 with right_col:
     tab = st.radio(
