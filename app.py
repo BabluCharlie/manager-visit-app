@@ -269,7 +269,7 @@ with right_col:
             "Leave Request": "🛌 Leave Request"
         }.get(x, x),
     )
-    st.write(f"Selected tab: {tab}")  # 👈 Add this here to debug
+    st.write(f"🔍 Currently selected tab: {tab}")
 
     # ---- Roaster Entry ----
     if tab == "Roaster Entry":
@@ -497,7 +497,7 @@ with right_col:
     elif tab == "Leave Request":
         st.subheader("🛌 Leave Request Form")
         st.info("✅ Leave request tab is working!")
-        
+
         with st.form("leave_form"):
             leave_manager = st.selectbox("Manager Name", ["-- Select --"] + manager_list)
             leave_type = st.selectbox("Leave Type", ["Casual Leave", "Sick Leave", "Week Off", "Comp-Off", "Other"])
