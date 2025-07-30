@@ -257,9 +257,16 @@ with left_col:
             st.exception(e)
 # ------- RIGHT COLUMN: Dashboards & Roaster -------
 with right_col:
-    tab = st.radio(
-        "Dashboard",
-        ["Roaster View", "Attendance", "Visit Summary", "Roaster Entry", "Daily Review", "Leave Request"],
+    tab = st.selectbox(
+        "Select View",
+        [
+            "Roaster View",
+            "Attendance",
+            "Visit Summary",
+            "Roaster Entry",
+            "Daily Review",
+            "Leave Request"
+        ],
         format_func=lambda x: {
             "Roaster View": "📅 Roaster",
             "Attendance": "📋 Attendance",
@@ -269,6 +276,7 @@ with right_col:
             "Leave Request": "🛌 Leave Request"
         }.get(x, x),
     )
+
     st.write(f"🔍 Currently selected tab: {tab}")  # Debug line
 
     if tab == "Roaster Entry":
