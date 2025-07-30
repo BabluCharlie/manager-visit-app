@@ -528,7 +528,9 @@ with right_col:
     # ----------------- Leave Request block starts OUTSIDE of Daily Review -------------------
     elif tab == "Leave Request":
         st.subheader("🛌 Leave Request Form")
-        st.info("✅ Leave request tab is working!")
+        st.info("✅ Leave request tab is working!")  # ← remove this and paste below instead
+
+        st.subheader("🛌 Leave Request Form")
 
         with st.form("leave_form"):
             leave_manager = st.selectbox("Manager Name", ["-- Select --"] + manager_list)
@@ -547,6 +549,7 @@ with right_col:
             elif from_date > to_date:
                 st.warning("⚠️ From Date cannot be after To Date.")
             else:
+                # Upload document (if any)
                 doc_url = "N/A"
                 if doc_upload:
                     now = datetime.datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
@@ -568,15 +571,17 @@ with right_col:
                     if upload_resp.status_code == 200:
                         doc_url = f"https://drive.google.com/file/d/{upload_resp.json().get('id')}/view?usp=sharing"
 
+                # Add or open "Leave Requests" sheet
                 try:
                     leave_sheet = client.open("Manager Visit Tracker").worksheet("Leave Requests")
                 except gspread.exceptions.WorksheetNotFound:
                     leave_sheet = client.open("Manager Visit Tracker").add_worksheet("Leave Requests", rows=1000,
                                                                                      cols=8)
-                    leave_sheet.insert_row([
-                        "Submitted On", "Manager", "Leave Type", "From Date", "To Date", "Reason", "Document Link"
-                    ], 1)
+                    leave_sheet.insert_row(
+                        ["Submitted On", "Manager", "Leave Type", "From Date", "To Date", "Reason", "Document Link"], 1
+                    )
 
+                # Append leave record
                 leave_sheet.append_row([
                     datetime.date.today().strftime("%Y-%m-%d"),
                     leave_manager,
