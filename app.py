@@ -277,7 +277,31 @@ with right_col:
         }.get(x, x),
     )
 
-    st.write(f"🔍 Currently selected tab: {tab}")  # Debug: shows selected tab
+    st.write(f"🔍 Currently selected tab: {tab}")  # Debug line
+
+    if tab == "Roaster Entry":
+        st.subheader("📆 Submit Weekly Roaster")
+        st.info("Roaster form goes here...")
+
+    elif tab == "Roaster View":
+        st.subheader("📅 Roaster View")
+        st.info("Roaster view goes here...")
+
+    elif tab == "Attendance":
+        st.subheader("📋 Attendance")
+        st.info("Attendance view goes here...")
+
+    elif tab == "Visit Summary":
+        st.subheader("📊 Visit Summary")
+        st.info("Visit summary goes here...")
+
+    elif tab == "Daily Review":
+        st.subheader("🧾 Daily Review Submission")
+        st.info("Daily review form goes here...")
+
+    elif tab == "Leave Request":
+        st.subheader("🛌 Leave Request Form")
+        st.info("✅ Leave request tab is working!")  # TEMP: just check if it shows
 
     # ---- Roaster Entry ----
     if tab == "Roaster Entry":
