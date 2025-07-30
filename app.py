@@ -21,9 +21,6 @@ pip install streamlit streamlit_js_eval gspread oauth2client pandas requests pyt
 ```
 A Google service‑account JSON key is stored in Streamlit secrets as **GOOGLE_SHEETS_CREDS**.
 """
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 
 import streamlit as st
 from streamlit.components.v1 import html
