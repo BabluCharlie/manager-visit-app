@@ -639,7 +639,7 @@ with right_col:
 
                 # Send email notification
                 send_leave_email(
-                    to_email="hr@hybb.in,admin@hybb.in",  # multiple recipients allowed
+                    to_email="cletus@hybb.in,santhosh.p@hybb.in",  # multiple recipients allowed
                     leave_manager=leave_manager,
                     leave_type=leave_type,
                     from_date=from_date,
