@@ -536,7 +536,7 @@ with right_col:
 
     def send_leave_email(to_email, leave_manager, leave_type, from_date, to_date, reason, doc_url):
         from_email = "bablu.c@hybb.in"
-        password = "ehbe vbyj cwyd vwwi"  # Use Gmail App Password
+        password = "ehbevbyjcwydvwwi"  # Gmail App Password
 
         msg = MIMEMultipart()
         msg['From'] = from_email
@@ -572,10 +572,9 @@ with right_col:
         except Exception as e:
             print(f"Email sending failed: {e}")
 
-    elif tab == "Leave Request":
-        st.subheader("🛌 Leave Request Form")
-        st.info("✅ Leave request tab is working!")  # ← remove this and paste below instead
 
+    # Main app logic
+    if tab == "Leave Request":
         st.subheader("🛌 Leave Request Form")
 
         with st.form("leave_form"):
@@ -637,9 +636,10 @@ with right_col:
                     reason,
                     doc_url
                 ])
-                # Send email to HR/Admin
+
+                # Send email notification
                 send_leave_email(
-                    to_email="cletus@hybb.in,santhosh.p@hybb.in",  # Replace with your HR/Admin email
+                    to_email="hr@hybb.in,admin@hybb.in",  # multiple recipients allowed
                     leave_manager=leave_manager,
                     leave_type=leave_type,
                     from_date=from_date,
@@ -648,4 +648,4 @@ with right_col:
                     doc_url=doc_url
                 )
 
-                st.success("✅ Leave request submitted successfully.")
+                st.success("✅ Leave request submitted and email sent to HR.")
