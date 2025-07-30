@@ -496,7 +496,8 @@ with right_col:
     # ----------------- Leave Request block starts OUTSIDE of Daily Review -------------------
     elif tab == "Leave Request":
         st.subheader("🛌 Leave Request Form")
-
+        st.info("✅ Leave request tab is working!")
+        
         with st.form("leave_form"):
             leave_manager = st.selectbox("Manager Name", ["-- Select --"] + manager_list)
             leave_type = st.selectbox("Leave Type", ["Casual Leave", "Sick Leave", "Week Off", "Comp-Off", "Other"])
