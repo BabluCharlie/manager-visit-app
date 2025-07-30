@@ -21,6 +21,9 @@ pip install streamlit streamlit_js_eval gspread oauth2client pandas requests pyt
 ```
 A Google service‑account JSON key is stored in Streamlit secrets as **GOOGLE_SHEETS_CREDS**.
 """
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import streamlit as st
 from streamlit.components.v1 import html
@@ -529,6 +532,49 @@ with right_col:
                 st.success("✅ Daily review submitted successfully.")
 
     # ----------------- Leave Request block starts OUTSIDE of Daily Review -------------------
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+
+
+    def send_leave_email(to_email, leave_manager, leave_type, from_date, to_date, reason, doc_url):
+        from_email = "bablu.c@hybb.in"
+        password = "ehbe vbyj cwyd vwwi"  # Use Gmail App Password
+
+        msg = MIMEMultipart()
+        msg['From'] = from_email
+        msg['To'] = to_email
+        msg['Subject'] = f"Leave Request Submitted by {leave_manager}"
+
+        body = f"""
+    Hi Team,
+
+    A leave request has been submitted:
+
+    🧑 Manager: {leave_manager}
+    📅 Leave Type: {leave_type}
+    🗓️ From: {from_date}
+    🗓️ To: {to_date}
+    📝 Reason: {reason}
+    📎 Document: {doc_url if doc_url != 'N/A' else 'No Document Attached'}
+
+    Please review this request in the Google Sheet.
+
+    Thanks,
+    HYBB Attendance System
+    """
+        msg.attach(MIMEText(body, 'plain'))
+
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(from_email, password)
+            server.send_message(msg)
+            server.quit()
+            print("Email sent successfully.")
+        except Exception as e:
+            print(f"Email sending failed: {e}")
+
     elif tab == "Leave Request":
         st.subheader("🛌 Leave Request Form")
         st.info("✅ Leave request tab is working!")  # ← remove this and paste below instead
@@ -594,5 +640,15 @@ with right_col:
                     reason,
                     doc_url
                 ])
+                # Send email to HR/Admin
+                send_leave_email(
+                    to_email="cletus@hybb.in,santhosh.p@hybb.in",  # Replace with your HR/Admin email
+                    leave_manager=leave_manager,
+                    leave_type=leave_type,
+                    from_date=from_date,
+                    to_date=to_date,
+                    reason=reason,
+                    doc_url=doc_url
+                )
 
                 st.success("✅ Leave request submitted successfully.")
