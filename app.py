@@ -446,7 +446,6 @@ with right_col:
             review_submit = st.form_submit_button("Submit Review")
 
         if review_submit:
-            # Validation
             if review_manager == "-- Select --":
                 st.warning("⚠️ Please select a manager.")
             elif not review_kitchens:
@@ -457,7 +456,6 @@ with right_col:
                 today = datetime.date.today().strftime("%Y-%m-%d")
                 now_time = datetime.datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
 
-                # Upload screenshot
                 upload_resp = requests.post(
                     "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",
                     headers={"Authorization": f"Bearer {creds.get_access_token().access_token}"},
@@ -479,14 +477,12 @@ with right_col:
                     if upload_resp.status_code == 200 else "UploadErr"
                 )
 
-                # Access or create the Daily Review sheet
                 try:
                     review_sheet = client.open("Manager Visit Tracker").worksheet("Daily Review")
                 except gspread.exceptions.WorksheetNotFound:
                     review_sheet = client.open("Manager Visit Tracker").add_worksheet("Daily Review", rows=1000, cols=6)
                     review_sheet.insert_row(["Date", "Time", "Manager", "Kitchens", "Screenshot Link"], 1)
 
-                # Append the data
                 review_sheet.append_row([
                     today,
                     now_time,
@@ -497,119 +493,65 @@ with right_col:
 
                 st.success("✅ Daily review submitted successfully.")
 
-                elif tab == "Leave Request":
+    # ----------------- Leave Request block starts OUTSIDE of Daily Review -------------------
+    elif tab == "Leave Request":
+        st.subheader("🛌 Leave Request Form")
 
-                st.subheader("🛌 Leave Request Form")
+        with st.form("leave_form"):
+            leave_manager = st.selectbox("Manager Name", ["-- Select --"] + manager_list)
+            leave_type = st.selectbox("Leave Type", ["Casual Leave", "Sick Leave", "Week Off", "Comp-Off", "Other"])
+            from_date = st.date_input("From Date", value=datetime.date.today())
+            to_date = st.date_input("To Date", value=datetime.date.today())
+            reason = st.text_area("Reason for Leave")
+            doc_upload = st.file_uploader("Optional Document (PDF, JPG, PNG)", type=["pdf", "jpg", "jpeg", "png"])
+            submit_leave = st.form_submit_button("Submit Leave Request")
 
-                with st.form("leave_form"):
+        if submit_leave:
+            if leave_manager == "-- Select --":
+                st.warning("⚠️ Please select a manager.")
+            elif not reason.strip():
+                st.warning("⚠️ Reason for leave is required.")
+            elif from_date > to_date:
+                st.warning("⚠️ From Date cannot be after To Date.")
+            else:
+                doc_url = "N/A"
+                if doc_upload:
+                    now = datetime.datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
+                    upload_resp = requests.post(
+                        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",
+                        headers={"Authorization": f"Bearer {creds.get_access_token().access_token}"},
+                        files={
+                            "data": (
+                                "metadata",
+                                json.dumps({
+                                    "name": f"{leave_manager}_{from_date}_{now}_leave_doc",
+                                    "parents": [DRIVE_FOLDER_ID]
+                                }),
+                                "application/json",
+                            ),
+                            "file": doc_upload.read(),
+                        },
+                    )
+                    if upload_resp.status_code == 200:
+                        doc_url = f"https://drive.google.com/file/d/{upload_resp.json().get('id')}/view?usp=sharing"
 
-                    leave_manager = st.selectbox("Manager Name", ["-- Select --"] + manager_list)
+                try:
+                    leave_sheet = client.open("Manager Visit Tracker").worksheet("Leave Requests")
+                except gspread.exceptions.WorksheetNotFound:
+                    leave_sheet = client.open("Manager Visit Tracker").add_worksheet("Leave Requests", rows=1000,
+                                                                                     cols=8)
+                    leave_sheet.insert_row([
+                        "Submitted On", "Manager", "Leave Type", "From Date", "To Date", "Reason", "Document Link"
+                    ], 1)
 
-                    leave_type = st.selectbox("Leave Type",
-                                              ["Casual Leave", "Sick Leave", "Week Off", "Comp-Off", "Other"])
+                leave_sheet.append_row([
+                    datetime.date.today().strftime("%Y-%m-%d"),
+                    leave_manager,
+                    leave_type,
+                    from_date.strftime("%Y-%m-%d"),
+                    to_date.strftime("%Y-%m-%d"),
+                    reason,
+                    doc_url
+                ])
 
-                    from_date = st.date_input("From Date", value=datetime.date.today())
-
-                    to_date = st.date_input("To Date", value=datetime.date.today())
-
-                    reason = st.text_area("Reason for Leave")
-
-                    doc_upload = st.file_uploader("Optional Document (PDF, JPG, PNG)",
-                                                  type=["pdf", "jpg", "jpeg", "png"])
-
-                    submit_leave = st.form_submit_button("Submit Leave Request")
-
-                if submit_leave:
-
-                    if leave_manager == "-- Select --":
-
-                        st.warning("⚠️ Please select a manager.")
-
-                    elif not reason.strip():
-
-                        st.warning("⚠️ Reason for leave is required.")
-
-                    elif from_date > to_date:
-
-                        st.warning("⚠️ From Date cannot be after To Date.")
-
-                    else:
-
-                        # Upload file if present
-
-                        doc_url = "N/A"
-
-                        if doc_upload:
-
-                            now = datetime.datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
-
-                            upload_resp = requests.post(
-
-                                "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",
-
-                                headers={"Authorization": f"Bearer {creds.get_access_token().access_token}"},
-
-                                files={
-
-                                    "data": (
-
-                                        "metadata",
-
-                                        json.dumps({
-
-                                            "name": f"{leave_manager}_{from_date}_{now}_leave_doc",
-
-                                            "parents": [DRIVE_FOLDER_ID]
-
-                                        }),
-
-                                        "application/json",
-
-                                    ),
-
-                                    "file": doc_upload.read(),
-
-                                },
-
-                            )
-
-                            if upload_resp.status_code == 200:
-                                doc_url = f"https://drive.google.com/file/d/{upload_resp.json().get('id')}/view?usp=sharing"
-
-                        # Add or open Leave Requests sheet
-
-                        try:
-
-                            leave_sheet = client.open("Manager Visit Tracker").worksheet("Leave Requests")
-
-                        except gspread.exceptions.WorksheetNotFound:
-
-                            leave_sheet = client.open("Manager Visit Tracker").add_worksheet("Leave Requests",
-                                                                                             rows=1000, cols=8)
-
-                            leave_sheet.insert_row([
-
-                                "Submitted On", "Manager", "Leave Type", "From Date", "To Date", "Reason",
-                                "Document Link"
-
-                            ], 1)
-
-                        leave_sheet.append_row([
-
-                            datetime.date.today().strftime("%Y-%m-%d"),
-
-                            leave_manager,
-
-                            leave_type,
-
-                            from_date.strftime("%Y-%m-%d"),
-
-                            to_date.strftime("%Y-%m-%d"),
-
-                            reason,
-
-                            doc_url
-
-                        ])
-
-                        st.success("✅ Leave request submitted successfully.")
+                st.success("✅ Leave request submitted successfully.")
