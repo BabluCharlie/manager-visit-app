@@ -259,14 +259,7 @@ with left_col:
 with right_col:
     tab = st.radio(
         "Dashboard",
-        [
-            "Roaster View",
-            "Attendance",
-            "Visit Summary",
-            "Roaster Entry",
-            "Daily Review",
-            "Leave Request"
-        ],
+        ["Roaster View", "Attendance", "Visit Summary", "Roaster Entry", "Daily Review", "Leave Request"],
         format_func=lambda x: {
             "Roaster View": "📅 Roaster",
             "Attendance": "📋 Attendance",
@@ -276,7 +269,6 @@ with right_col:
             "Leave Request": "🛌 Leave Request"
         }.get(x, x),
     )
-
     st.write(f"🔍 Currently selected tab: {tab}")  # Debug line
 
     if tab == "Roaster Entry":
