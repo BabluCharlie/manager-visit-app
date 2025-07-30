@@ -1,4 +1,7 @@
 """
+# Add this temporary line at top of script
+st.caption("🟢 Last updated: 2025-07-30")
+
 HYBB Attendance System – Streamlit App
 Updated: 2025‑07‑16 – fixes invisible dropdown value & captures per‑user geolocation
 
