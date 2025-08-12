@@ -217,21 +217,24 @@ with left_col:
         location_url = f"https://www.google.com/maps?q={lat},{lon}" if lat != "N/A" else "Location N/A"
 
         # Prevent duplicate punches (same manager/kitchen/action same day)
+        skip_duplicate_check = False
         try:
             existing_records = worksheet.get_all_records()
         except Exception as e:
             existing_records = []
-            st.warning(f"⚠️ Unable to read attendance sheet: {e}")
+            skip_duplicate_check = True
+            st.warning(f"⚠️ Unable to read attendance sheet for duplicate check: {e}")
 
-        if any(
-                str(r.get("Date")) == today_str
-                and r.get("Manager Name") == sel_manager
-                and r.get("Kitchen Name") == sel_kitchen
-                and r.get("Action") == sel_action
-                for r in existing_records
-        ):
-            st.warning("Duplicate punch today.")
-            st.stop()
+        if not skip_duplicate_check:
+            if any(
+                    str(r.get("Date")) == today_str
+                    and r.get("Manager Name") == sel_manager
+                    and r.get("Kitchen Name") == sel_kitchen
+                    and r.get("Action") == sel_action
+                    for r in existing_records
+            ):
+                st.warning("Duplicate punch today.")
+                st.stop()
 
         # Upload selfie to Drive
         resp = requests.post(
