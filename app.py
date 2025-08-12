@@ -217,33 +217,10 @@ with left_col:
         location_url = f"https://www.google.com/maps?q={lat},{lon}" if lat != "N/A" else "Location N/A"
 
         # Prevent duplicate punches (same manager/kitchen/action same day)
-        try:
-            try:
-                # Avoid GSpreadException when sheet is empty (only headers)
-                all_values = worksheet.get_all_values()
-                if len(all_values) > 1:  # Has data beyond header row
-                    punch_records = safe_get_all_records(worksheet)
-                else:
-                    punch_records = []
-            except Exception as e:
-                st.warning(f"⚠️ Could not read attendance records: {e}")
-                punch_records = []
-
-        # Check only if records are loaded
-        is_duplicate = False
-        if punch_records:
-            for r in punch_records:
-                date_val = str(r.get("Date", "")).strip()
-                manager_val = str(r.get("Manager Name", "")).strip()
-                kitchen_val = str(r.get("Kitchen Name", "")).strip()
-                action_val = str(r.get("Action", "")).strip()
-
-                if (date_val == today_str and manager_val == sel_manager
-                        and kitchen_val == sel_kitchen and action_val == sel_action):
-                    is_duplicate = True
-                    break
-
-        if is_duplicate:
+        if any(
+            r.get("Date") == today_str and r.get("Manager Name") == sel_manager and r.get("Kitchen Name") == sel_kitchen and r.get("Action") == sel_action
+            for r in worksheet.get_all_records()
+        ):
             st.warning("Duplicate punch today.")
             st.stop()
 
@@ -386,7 +363,7 @@ with right_col:
     # ---- Attendance ----
     elif tab == "Attendance":
         try:
-            records = safe_get_all_records(worksheet)
+            records = worksheet.get_all_records()
             if not records:
                 st.warning("No data found in the sheet.")
             else:
