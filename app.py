@@ -163,6 +163,7 @@ manager_list = [
     "Umesh M",
     "Selva Kumar",
     "Srividya",
+    "Mohammed Azhar",
     "Test",
     "Test 2",
 ]
