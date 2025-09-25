@@ -20,7 +20,6 @@ import streamlit as st
 st.caption("🟢 Last updated: 2025-07-30")
 
 
-python
 import streamlit as st
 from streamlit.components.v1 import html
 try:
