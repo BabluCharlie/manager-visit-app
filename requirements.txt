@@ -3,4 +3,9 @@ gspread
 oauth2client
 geocoder
 streamlit_js_eval
-
+pandas
+requests
+pytz
+google-auth
+google-auth-httplib2
+google-auth-oauthlib
